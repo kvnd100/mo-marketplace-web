@@ -11,6 +11,28 @@ interface VariantSelectorProps {
   onSelectMaterial: (material: string) => void;
 }
 
+const COLOR_MAP: Record<string, string> = {
+  white: '#ffffff',
+  black: '#1f1f1f',
+  red: '#dc2626',
+  blue: '#2563eb',
+  green: '#16a34a',
+  yellow: '#eab308',
+  pink: '#ec4899',
+  purple: '#9333ea',
+  orange: '#f97316',
+  gray: '#9ca3af',
+  grey: '#9ca3af',
+  silver: '#c0c0c0',
+  brown: '#92400e',
+  navy: '#1e3a5f',
+  beige: '#d4c5a9',
+};
+
+function getColorHex(colorName: string): string | null {
+  return COLOR_MAP[colorName.toLowerCase()] ?? null;
+}
+
 export default function VariantSelector({
   variants,
   selectedColor,
@@ -57,9 +79,7 @@ export default function VariantSelector({
       (dimension === 'size' && !selectedColor && !selectedMaterial) ||
       (dimension === 'material' && !selectedColor && !selectedSize)
     ) {
-      return !variants.some(
-        (v) => v[dimension] === value && v.stock > 0,
-      );
+      return !variants.some((v) => v[dimension] === value && v.stock > 0);
     }
 
     if (testColor && testSize && testMaterial) {
@@ -76,84 +96,159 @@ export default function VariantSelector({
     );
   };
 
-  const renderGroup = (
-    label: string,
-    options: string[],
-    selected: string | null,
-    onSelect: (value: string) => void,
-    dimension: 'color' | 'size' | 'material',
-  ) => (
-    <fieldset>
-      <legend className="mb-2 block text-sm font-medium text-gray-700">
-        {label}
-      </legend>
-      <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={label}>
-        {options.map((option) => {
-          const disabled = isOptionDisabled(dimension, option);
-          const active = selected === option;
-
-          return (
-            <button
-              key={option}
-              type="button"
-              disabled={disabled}
-              onClick={() => onSelect(option)}
-              role="radio"
-              aria-checked={active}
-              aria-label={`${option}${disabled ? ' (out of stock)' : ''}`}
-              className={`relative rounded-lg border px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 ${
-                active
-                  ? 'border-red-600 bg-red-50 text-red-700 ring-2 ring-red-600'
-                  : disabled
-                    ? 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 line-through'
-                    : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-              }`}
-            >
-              {option}
-              {disabled && (
-                <span className="absolute -top-2 -right-2 rounded-full bg-gray-400 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                  Out
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </fieldset>
-  );
-
   const selectedVariant =
     selectedColor && selectedSize && selectedMaterial
       ? findVariant(selectedColor, selectedSize, selectedMaterial)
       : undefined;
 
   return (
-    <div className="space-y-5">
-      {renderGroup('Color', colors, selectedColor, onSelectColor, 'color')}
-      {renderGroup('Size', sizes, selectedSize, onSelectSize, 'size')}
-      {renderGroup('Material', materials, selectedMaterial, onSelectMaterial, 'material')}
+    <div className="space-y-8">
+      {/* Color */}
+      <fieldset>
+        <legend className="mb-3 block text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+          Color:{' '}
+          {selectedColor && (
+            <span className="text-on-surface">{selectedColor}</span>
+          )}
+        </legend>
+        <div className="flex gap-3" role="radiogroup" aria-label="Color">
+          {colors.map((color) => {
+            const disabled = isOptionDisabled('color', color);
+            const active = selectedColor === color;
+            const hex = getColorHex(color);
 
+            return (
+              <button
+                key={color}
+                type="button"
+                disabled={disabled}
+                onClick={() => onSelectColor(color)}
+                role="radio"
+                aria-checked={active}
+                aria-label={`${color}${disabled ? ' (out of stock)' : ''}`}
+                className={`relative h-10 w-10 rounded-full border-2 p-0.5 transition-all ${
+                  active
+                    ? 'border-primary'
+                    : disabled
+                      ? 'cursor-not-allowed border-zinc-100 opacity-40'
+                      : 'border-transparent hover:border-zinc-300'
+                }`}
+              >
+                <div
+                  className={`h-full w-full rounded-full shadow-inner ${
+                    hex ? '' : 'bg-zinc-300'
+                  } ${hex === '#ffffff' ? 'border border-zinc-100' : ''}`}
+                  style={hex ? { backgroundColor: hex } : undefined}
+                />
+                {disabled && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="h-[2px] w-8 rotate-45 rounded bg-zinc-400" />
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      {/* Size */}
+      <fieldset>
+        <legend className="mb-3 block text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+          Size:{' '}
+          {selectedSize && (
+            <span className="text-on-surface">{selectedSize}</span>
+          )}
+        </legend>
+        <div className="flex flex-wrap gap-3" role="radiogroup" aria-label="Size">
+          {sizes.map((size) => {
+            const disabled = isOptionDisabled('size', size);
+            const active = selectedSize === size;
+
+            return (
+              <button
+                key={size}
+                type="button"
+                disabled={disabled}
+                onClick={() => onSelectSize(size)}
+                role="radio"
+                aria-checked={active}
+                aria-label={`${size}${disabled ? ' (out of stock)' : ''}`}
+                className={`rounded-lg border px-6 py-2 text-sm font-semibold transition-colors ${
+                  active
+                    ? 'border-2 border-primary bg-primary-container/10 font-black text-primary'
+                    : disabled
+                      ? 'cursor-not-allowed border-zinc-100 text-zinc-300 line-through'
+                      : 'border-zinc-200 text-zinc-700 hover:border-primary'
+                }`}
+              >
+                {size}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      {/* Material */}
+      <fieldset>
+        <legend className="mb-3 block text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+          Material:{' '}
+          {selectedMaterial && (
+            <span className="text-on-surface">{selectedMaterial}</span>
+          )}
+        </legend>
+        <div className="flex flex-wrap gap-3" role="radiogroup" aria-label="Material">
+          {materials.map((material) => {
+            const disabled = isOptionDisabled('material', material);
+            const active = selectedMaterial === material;
+
+            return (
+              <button
+                key={material}
+                type="button"
+                disabled={disabled}
+                onClick={() => onSelectMaterial(material)}
+                role="radio"
+                aria-checked={active}
+                aria-label={`${material}${disabled ? ' (out of stock)' : ''}`}
+                className={`rounded px-5 py-2 text-sm font-semibold transition-colors ${
+                  active
+                    ? 'border border-primary bg-surface-container-high font-bold text-primary'
+                    : disabled
+                      ? 'cursor-not-allowed bg-zinc-50 text-zinc-300 line-through'
+                      : 'bg-surface-container-low text-zinc-600 hover:bg-surface-container-high'
+                }`}
+              >
+                {material}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      {/* Selected Variant Info */}
       {selectedVariant && (
         <div
-          className={`rounded-lg border p-4 ${
+          className={`rounded-xl border p-5 ${
             selectedVariant.stock === 0
               ? 'border-red-200 bg-red-50'
-              : 'border-gray-200 bg-gray-50'
+              : 'border-zinc-200 bg-surface-container-low'
           }`}
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Selected Variant</p>
-              <p className="font-mono text-sm font-medium text-gray-900">
+              <p className="font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                Selected Variant
+              </p>
+              <p className="mt-1 font-mono text-sm font-medium text-on-surface">
                 {selectedVariant.combinationKey}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-red-600">
+              <p className="font-headline text-2xl font-bold text-primary">
                 ${Number(selectedVariant.price).toFixed(2)}
               </p>
               <p
-                className={`text-sm font-medium ${
+                className={`text-xs font-bold uppercase tracking-widest ${
                   selectedVariant.stock > 0 ? 'text-green-600' : 'text-red-600'
                 }`}
               >

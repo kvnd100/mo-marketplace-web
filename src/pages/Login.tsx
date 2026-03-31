@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../store/auth-context';
 import { AxiosError } from 'axios';
 import type { ApiError } from '../types';
+import Icon from '../components/Icon';
 
 const loginSchema = z.object({
   email: z.email('Please enter a valid email address'),
@@ -46,18 +47,25 @@ export default function Login() {
   };
 
   const inputClass =
-    'w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 transition focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:outline-none';
+    'w-full rounded-lg border border-zinc-200 bg-surface-container-lowest px-4 py-3 font-body text-sm text-on-surface placeholder-zinc-400 transition focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none';
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
-        <h1 className="mb-6 text-center text-2xl font-bold tracking-tight text-gray-900">
-          Sign In
-        </h1>
+    <div className="flex min-h-screen items-center justify-center px-4 pt-16 pb-12">
+      <div className="editorial-shadow w-full max-w-md rounded-2xl bg-white p-10">
+        <div className="mb-8 text-center">
+          <span className="text-3xl font-black tracking-tighter text-red-600">MO</span>
+          <h1 className="mt-4 font-headline text-3xl font-extrabold tracking-tight text-on-surface">
+            Welcome back
+          </h1>
+          <p className="mt-2 font-label text-xs uppercase tracking-widest text-zinc-500">
+            Sign in to your account
+          </p>
+        </div>
 
         {apiError && (
-          <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">
-            {apiError}
+          <div className="mb-6 flex items-center gap-2 rounded-lg bg-error-container p-3" role="alert">
+            <Icon name="error" className="text-sm text-on-error-container" />
+            <span className="font-body text-sm text-on-error-container">{apiError}</span>
           </div>
         )}
 
@@ -65,7 +73,7 @@ export default function Login() {
           <div>
             <label
               htmlFor="email"
-              className="mb-1 block text-sm font-medium text-gray-700"
+              className="mb-2 block font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500"
             >
               Email
             </label>
@@ -79,14 +87,16 @@ export default function Login() {
               {...register('email')}
             />
             {errors.email && (
-              <p className="mt-1 text-sm text-red-600" role="alert">{errors.email.message}</p>
+              <p className="mt-1.5 font-body text-xs text-error" role="alert">
+                {errors.email.message}
+              </p>
             )}
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="mb-1 block text-sm font-medium text-gray-700"
+              className="mb-2 block font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500"
             >
               Password
             </label>
@@ -100,7 +110,7 @@ export default function Login() {
               {...register('password')}
             />
             {errors.password && (
-              <p className="mt-1 text-sm text-red-600" role="alert">
+              <p className="mt-1.5 font-body text-xs text-error" role="alert">
                 {errors.password.message}
               </p>
             )}
@@ -109,17 +119,20 @@ export default function Login() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-lg bg-red-600 px-4 py-2.5 font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50"
+            className="group relative w-full overflow-hidden rounded-lg bg-primary py-3.5 font-label text-sm font-black uppercase tracking-widest text-on-primary shadow-lg transition-all hover:bg-primary-container active:scale-[0.98] disabled:opacity-50"
           >
-            {isSubmitting ? 'Signing in...' : 'Sign In'}
+            <span className="relative z-10">
+              {isSubmitting ? 'Signing in...' : 'Sign In'}
+            </span>
+            <div className="absolute inset-0 translate-y-full bg-white/10 transition-transform duration-300 group-hover:translate-y-0" />
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
+        <p className="mt-8 text-center font-body text-sm text-zinc-500">
           Don&apos;t have an account?{' '}
           <Link
             to="/register"
-            className="font-medium text-red-600 transition hover:text-red-500"
+            className="font-semibold text-primary transition hover:text-primary-container"
           >
             Create one
           </Link>

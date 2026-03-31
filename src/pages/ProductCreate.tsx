@@ -7,6 +7,7 @@ import client from '../api/client';
 import type { Product } from '../types';
 import { AxiosError } from 'axios';
 import type { ApiError } from '../types';
+import Icon from '../components/Icon';
 
 const variantSchema = z.object({
   color: z.string().min(1, 'Color is required'),
@@ -79,13 +80,7 @@ export default function ProductCreate() {
             stock: variant.stock,
           });
         } catch (err) {
-          if (err instanceof AxiosError && err.response?.status === 409) {
-            const body = err.response.data as ApiError;
-            const message = Array.isArray(body.message)
-              ? body.message.join(', ')
-              : body.message;
-            variantErrs[i] = message;
-          } else if (err instanceof AxiosError && err.response?.data) {
+          if (err instanceof AxiosError && err.response?.data) {
             const body = err.response.data as ApiError;
             const message = Array.isArray(body.message)
               ? body.message.join(', ')
@@ -121,30 +116,38 @@ export default function ProductCreate() {
   };
 
   const inputClass =
-    'w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:outline-none';
+    'w-full rounded-lg border border-zinc-200 bg-surface-container-lowest px-4 py-3 font-body text-sm text-on-surface placeholder-zinc-400 transition focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none';
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="mb-8 text-2xl font-bold text-gray-900">Create Product</h1>
+    <div className="mx-auto max-w-3xl px-4 pt-20 pb-20">
+      <div className="mb-10">
+        <h1 className="font-headline text-4xl font-black tracking-tight text-on-surface">
+          Create Product
+        </h1>
+        <p className="mt-1 font-label text-xs uppercase tracking-widest text-zinc-500">
+          Add a new product with variants
+        </p>
+      </div>
 
       {apiError && (
-        <div
-          className="mb-6 rounded-lg bg-red-50 p-3 text-sm text-red-700"
-          role="alert"
-        >
-          {apiError}
+        <div className="mb-8 flex items-start gap-2 rounded-xl bg-error-container p-4" role="alert">
+          <Icon name="error" className="mt-0.5 text-sm text-on-error-container" />
+          <span className="font-body text-sm text-on-error-container">{apiError}</span>
         </div>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Section 1: Product Info */}
-        <section className="rounded-xl bg-white p-6 shadow">
-          <h2 className="mb-5 text-lg font-semibold text-gray-900">
+        <section className="editorial-shadow rounded-xl bg-white p-8">
+          <h2 className="mb-6 font-headline text-xl font-bold tracking-tight text-on-surface">
             Product Information
           </h2>
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
-              <label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="name"
+                className="mb-2 block font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500"
+              >
                 Name
               </label>
               <input
@@ -155,30 +158,40 @@ export default function ProductCreate() {
                 aria-invalid={errors.name ? 'true' : 'false'}
               />
               {errors.name && (
-                <p className="mt-1 text-sm text-red-600" role="alert">{errors.name.message}</p>
+                <p className="mt-1.5 font-body text-xs text-error" role="alert">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="description" className="mb-1 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="description"
+                className="mb-2 block font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500"
+              >
                 Description
               </label>
               <textarea
                 id="description"
-                rows={3}
+                rows={4}
                 className={inputClass}
-                placeholder="Product description"
+                placeholder="Describe your product..."
                 {...register('description')}
                 aria-invalid={errors.description ? 'true' : 'false'}
               />
               {errors.description && (
-                <p className="mt-1 text-sm text-red-600" role="alert">{errors.description.message}</p>
+                <p className="mt-1.5 font-body text-xs text-error" role="alert">
+                  {errors.description.message}
+                </p>
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div>
-                <label htmlFor="basePrice" className="mb-1 block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="basePrice"
+                  className="mb-2 block font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500"
+                >
                   Base Price ($)
                 </label>
                 <input
@@ -191,12 +204,17 @@ export default function ProductCreate() {
                   aria-invalid={errors.basePrice ? 'true' : 'false'}
                 />
                 {errors.basePrice && (
-                  <p className="mt-1 text-sm text-red-600" role="alert">{errors.basePrice.message}</p>
+                  <p className="mt-1.5 font-body text-xs text-error" role="alert">
+                    {errors.basePrice.message}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="imageUrl" className="mb-1 block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="imageUrl"
+                  className="mb-2 block font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500"
+                >
                   Image URL (optional)
                 </label>
                 <input
@@ -208,7 +226,9 @@ export default function ProductCreate() {
                   aria-invalid={errors.imageUrl ? 'true' : 'false'}
                 />
                 {errors.imageUrl && (
-                  <p className="mt-1 text-sm text-red-600" role="alert">{errors.imageUrl.message}</p>
+                  <p className="mt-1.5 font-body text-xs text-error" role="alert">
+                    {errors.imageUrl.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -216,15 +236,17 @@ export default function ProductCreate() {
         </section>
 
         {/* Section 2: Variants */}
-        <section className="rounded-xl bg-white p-6 shadow">
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Variants</h2>
+        <section className="editorial-shadow rounded-xl bg-white p-8">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="font-headline text-xl font-bold tracking-tight text-on-surface">
+              Variants
+            </h2>
             <button
               type="button"
               onClick={() =>
                 append({ color: '', size: '', material: '', price: 0, stock: 0 })
               }
-              className="rounded-lg border border-red-600 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+              className="rounded-lg border-2 border-zinc-100 px-5 py-2 font-label text-xs font-bold uppercase tracking-widest text-on-surface transition hover:bg-zinc-50 active:scale-95"
             >
               + Add Variant
             </button>
@@ -234,14 +256,14 @@ export default function ProductCreate() {
             {fields.map((field, index) => (
               <div
                 key={field.id}
-                className={`rounded-lg border p-4 ${
+                className={`rounded-xl border p-6 ${
                   variantErrors[index]
-                    ? 'border-red-300 bg-red-50'
-                    : 'border-gray-200 bg-gray-50'
+                    ? 'border-error/30 bg-error-container/30'
+                    : 'border-zinc-200 bg-surface-container-low'
                 }`}
               >
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">
+                <div className="mb-4 flex items-center justify-between">
+                  <span className="font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                     Variant {index + 1}
                   </span>
                   {fields.length > 1 && (
@@ -255,7 +277,7 @@ export default function ProductCreate() {
                           return next;
                         });
                       }}
-                      className="text-sm text-red-600 hover:text-red-800"
+                      className="font-label text-[10px] font-bold uppercase tracking-widest text-error transition hover:underline"
                     >
                       Remove
                     </button>
@@ -264,16 +286,19 @@ export default function ProductCreate() {
 
                 {variantErrors[index] && (
                   <div
-                    className="mb-3 rounded-md bg-red-100 p-2 text-sm text-red-700"
+                    className="mb-4 flex items-center gap-2 rounded-lg bg-error-container p-2.5"
                     role="alert"
                   >
-                    {variantErrors[index]}
+                    <Icon name="error" className="text-sm text-on-error-container" />
+                    <span className="font-body text-xs text-on-error-container">
+                      {variantErrors[index]}
+                    </span>
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-500">
+                    <label className="mb-2 block font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                       Color
                     </label>
                     <input
@@ -283,14 +308,14 @@ export default function ProductCreate() {
                       aria-invalid={errors.variants?.[index]?.color ? 'true' : 'false'}
                     />
                     {errors.variants?.[index]?.color && (
-                      <p className="mt-1 text-xs text-red-600" role="alert">
+                      <p className="mt-1.5 font-body text-xs text-error" role="alert">
                         {errors.variants[index].color.message}
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-500">
+                    <label className="mb-2 block font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                       Size
                     </label>
                     <input
@@ -300,14 +325,14 @@ export default function ProductCreate() {
                       aria-invalid={errors.variants?.[index]?.size ? 'true' : 'false'}
                     />
                     {errors.variants?.[index]?.size && (
-                      <p className="mt-1 text-xs text-red-600" role="alert">
+                      <p className="mt-1.5 font-body text-xs text-error" role="alert">
                         {errors.variants[index].size.message}
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-500">
+                    <label className="mb-2 block font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                       Material
                     </label>
                     <input
@@ -317,16 +342,16 @@ export default function ProductCreate() {
                       aria-invalid={errors.variants?.[index]?.material ? 'true' : 'false'}
                     />
                     {errors.variants?.[index]?.material && (
-                      <p className="mt-1 text-xs text-red-600" role="alert">
+                      <p className="mt-1.5 font-body text-xs text-error" role="alert">
                         {errors.variants[index].material.message}
                       </p>
                     )}
                   </div>
                 </div>
 
-                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-500">
+                    <label className="mb-2 block font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                       Price ($)
                     </label>
                     <input
@@ -338,14 +363,14 @@ export default function ProductCreate() {
                       aria-invalid={errors.variants?.[index]?.price ? 'true' : 'false'}
                     />
                     {errors.variants?.[index]?.price && (
-                      <p className="mt-1 text-xs text-red-600" role="alert">
+                      <p className="mt-1.5 font-body text-xs text-error" role="alert">
                         {errors.variants[index].price.message}
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-500">
+                    <label className="mb-2 block font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                       Stock
                     </label>
                     <input
@@ -356,7 +381,7 @@ export default function ProductCreate() {
                       aria-invalid={errors.variants?.[index]?.stock ? 'true' : 'false'}
                     />
                     {errors.variants?.[index]?.stock && (
-                      <p className="mt-1 text-xs text-red-600" role="alert">
+                      <p className="mt-1.5 font-body text-xs text-error" role="alert">
                         {errors.variants[index].stock.message}
                       </p>
                     )}
@@ -370,9 +395,12 @@ export default function ProductCreate() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-lg bg-red-600 px-6 py-3 text-lg font-semibold text-white transition hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
+          className="group relative w-full overflow-hidden rounded-lg bg-primary py-4 font-label text-lg font-black uppercase tracking-widest text-on-primary shadow-lg transition-all hover:bg-primary-container active:scale-[0.98] disabled:opacity-50"
         >
-          {submitting ? 'Creating…' : 'Create Product'}
+          <span className="relative z-10">
+            {submitting ? 'Creating...' : 'Create Product'}
+          </span>
+          <div className="absolute inset-0 translate-y-full bg-white/10 transition-transform duration-300 group-hover:translate-y-0" />
         </button>
       </form>
     </div>

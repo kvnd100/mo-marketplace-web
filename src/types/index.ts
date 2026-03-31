@@ -33,6 +33,20 @@ export interface AuthResponse {
   user: User;
 }
 
+export interface CartItem {
+  productId: string;
+  productName: string;
+  productImage: string | null;
+  variantId: string;
+  combinationKey: string;
+  color: string;
+  size: string;
+  material: string;
+  price: number;
+  stock: number;
+  quantity: number;
+}
+
 export interface ApiError {
   statusCode: number;
   message: string | string[];
