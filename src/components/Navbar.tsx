@@ -17,7 +17,7 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link to="/products" className="text-xl font-bold text-indigo-600">
+            <Link to="/products" className="text-xl font-bold text-red-600">
               MO Marketplace
             </Link>
             <div className="hidden sm:flex sm:gap-4">
@@ -44,7 +44,7 @@ export default function Navbar() {
             ) : (
               <Link
                 to="/login"
-                className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
               >
                 Sign In
               </Link>
@@ -98,7 +98,7 @@ export default function Navbar() {
               <Link
                 to="/login"
                 onClick={() => setMenuOpen(false)}
-                className="block rounded-md px-3 py-2 text-base font-medium text-indigo-600 hover:bg-gray-100"
+                className="block rounded-md px-3 py-2 text-base font-medium text-red-600 hover:bg-gray-100"
               >
                 Sign In
               </Link>

@@ -73,7 +73,7 @@ export default function ProductList() {
         {isAuthenticated && (
           <Link
             to="/products/new"
-            className="mt-6 inline-block rounded-lg bg-indigo-600 px-6 py-2.5 font-semibold text-white transition hover:bg-indigo-700"
+            className="mt-6 inline-block rounded-lg bg-red-600 px-6 py-2.5 font-semibold text-white transition hover:bg-red-700"
           >
             Create Your First Product
           </Link>
@@ -89,7 +89,7 @@ export default function ProductList() {
         {isAuthenticated && (
           <Link
             to="/products/new"
-            className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
+            className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
           >
             Add Product
           </Link>
@@ -129,10 +129,10 @@ export default function ProductList() {
               )}
             </div>
             <div className="p-4">
-              <h2 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">
+              <h2 className="text-lg font-semibold text-gray-900 group-hover:text-red-600">
                 {product.name}
               </h2>
-              <p className="mt-1 text-lg font-bold text-indigo-600">
+              <p className="mt-1 text-lg font-bold text-red-600">
                 ${Number(product.basePrice).toFixed(2)}
               </p>
               <p className="mt-1 text-sm text-gray-500">

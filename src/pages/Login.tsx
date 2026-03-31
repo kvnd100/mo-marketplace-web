@@ -70,7 +70,7 @@ export default function Login() {
               id="email"
               type="email"
               autoComplete="email"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:outline-none"
               placeholder="you@example.com"
               {...register('email')}
             />
@@ -90,7 +90,7 @@ export default function Login() {
               id="password"
               type="password"
               autoComplete="current-password"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:outline-none"
               placeholder="••••••••"
               {...register('password')}
             />
@@ -104,7 +104,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 font-semibold text-white transition hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
+            className="w-full rounded-lg bg-red-600 px-4 py-2.5 font-semibold text-white transition hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
           >
             {isSubmitting ? 'Signing in…' : 'Sign In'}
           </button>
@@ -114,7 +114,7 @@ export default function Login() {
           Don&apos;t have an account?{' '}
           <Link
             to="/register"
-            className="font-medium text-indigo-600 hover:text-indigo-500"
+            className="font-medium text-red-600 hover:text-red-500"
           >
             Create one
           </Link>
