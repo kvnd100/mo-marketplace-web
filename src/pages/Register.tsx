@@ -7,15 +7,21 @@ import { useAuth } from '../store/auth-context';
 import { AxiosError } from 'axios';
 import type { ApiError } from '../types';
 
-const loginSchema = z.object({
-  email: z.email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-});
+const registerSchema = z
+  .object({
+    email: z.email('Please enter a valid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type RegisterFormData = z.infer<typeof registerSchema>;
 
-export default function Login() {
-  const { login } = useAuth();
+export default function Register() {
+  const { register: registerUser } = useAuth();
   const navigate = useNavigate();
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -23,14 +29,14 @@ export default function Login() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: RegisterFormData) => {
     setApiError(null);
     try {
-      await login(data.email, data.password);
+      await registerUser(data.email, data.password);
       navigate('/products');
     } catch (err) {
       if (err instanceof AxiosError && err.response?.data) {
@@ -49,7 +55,7 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
         <h1 className="mb-6 text-center text-2xl font-bold text-gray-900">
-          Sign In
+          Create Account
         </h1>
 
         {apiError && (
@@ -89,7 +95,7 @@ export default function Login() {
             <input
               id="password"
               type="password"
-              autoComplete="current-password"
+              autoComplete="new-password"
               className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               placeholder="••••••••"
               {...register('password')}
@@ -101,22 +107,44 @@ export default function Login() {
             )}
           </div>
 
+          <div>
+            <label
+              htmlFor="confirmPassword"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
+              Confirm Password
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              placeholder="••••••••"
+              {...register('confirmPassword')}
+            />
+            {errors.confirmPassword && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
+
           <button
             type="submit"
             disabled={isSubmitting}
             className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 font-semibold text-white transition hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
           >
-            {isSubmitting ? 'Signing in…' : 'Sign In'}
+            {isSubmitting ? 'Creating account…' : 'Create Account'}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-600">
-          Don&apos;t have an account?{' '}
+          Already have an account?{' '}
           <Link
-            to="/register"
+            to="/login"
             className="font-medium text-indigo-600 hover:text-indigo-500"
           >
-            Create one
+            Sign in
           </Link>
         </p>
       </div>
