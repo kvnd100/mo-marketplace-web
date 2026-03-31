@@ -83,11 +83,11 @@ export default function VariantSelector({
     onSelect: (value: string) => void,
     dimension: 'color' | 'size' | 'material',
   ) => (
-    <div>
-      <label className="mb-2 block text-sm font-medium text-gray-700">
+    <fieldset>
+      <legend className="mb-2 block text-sm font-medium text-gray-700">
         {label}
-      </label>
-      <div className="flex flex-wrap gap-2">
+      </legend>
+      <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={label}>
         {options.map((option) => {
           const disabled = isOptionDisabled(dimension, option);
           const active = selected === option;
@@ -98,7 +98,10 @@ export default function VariantSelector({
               type="button"
               disabled={disabled}
               onClick={() => onSelect(option)}
-              className={`relative rounded-lg border px-4 py-2 text-sm font-medium transition ${
+              role="radio"
+              aria-checked={active}
+              aria-label={`${option}${disabled ? ' (out of stock)' : ''}`}
+              className={`relative rounded-lg border px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 ${
                 active
                   ? 'border-red-600 bg-red-50 text-red-700 ring-2 ring-red-600'
                   : disabled
@@ -116,7 +119,7 @@ export default function VariantSelector({
           );
         })}
       </div>
-    </div>
+    </fieldset>
   );
 
   const selectedVariant =
@@ -131,7 +134,13 @@ export default function VariantSelector({
       {renderGroup('Material', materials, selectedMaterial, onSelectMaterial, 'material')}
 
       {selectedVariant && (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <div
+          className={`rounded-lg border p-4 ${
+            selectedVariant.stock === 0
+              ? 'border-red-200 bg-red-50'
+              : 'border-gray-200 bg-gray-50'
+          }`}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Selected Variant</p>

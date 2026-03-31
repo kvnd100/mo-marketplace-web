@@ -25,8 +25,10 @@ export default function ProductDetail() {
       .catch((err) => {
         if (err.response?.status === 404) {
           setNotFound(true);
+        } else if (err.response?.status === 401) {
+          setError('You must be logged in to view this product.');
         } else {
-          setError('Failed to load product.');
+          setError('Failed to load product. Please try again later.');
         }
       })
       .finally(() => setLoading(false));
@@ -53,8 +55,23 @@ export default function ProductDetail() {
   if (notFound) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-16 text-center sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-bold text-gray-900">404</h1>
-        <p className="mt-2 text-lg text-gray-500">Product not found.</p>
+        <svg
+          className="mx-auto h-16 w-16 text-gray-300"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <h1 className="mt-4 text-4xl font-bold text-gray-900">404</h1>
+        <p className="mt-2 text-lg text-gray-500">
+          The product you&apos;re looking for doesn&apos;t exist or has been removed.
+        </p>
         <Link
           to="/products"
           className="mt-6 inline-block rounded-lg bg-red-600 px-6 py-2.5 font-semibold text-white transition hover:bg-red-700"
@@ -71,6 +88,14 @@ export default function ProductDetail() {
         <div className="rounded-lg bg-red-50 p-4 text-center text-red-700">
           {error ?? 'Something went wrong.'}
         </div>
+        <div className="mt-4 text-center">
+          <Link
+            to="/products"
+            className="text-sm font-medium text-red-600 hover:text-red-500"
+          >
+            Back to Products
+          </Link>
+        </div>
       </div>
     );
   }
@@ -84,6 +109,9 @@ export default function ProductDetail() {
             v.material === selectedMaterial,
         )
       : undefined;
+
+  const allOutOfStock =
+    product.variants.length > 0 && product.variants.every((v) => v.stock === 0);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
@@ -99,7 +127,7 @@ export default function ProductDetail() {
 
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         {/* Product Image */}
-        <div className="aspect-square overflow-hidden rounded-xl bg-gray-100">
+        <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-100">
           {product.imageUrl ? (
             <img
               src={product.imageUrl}
@@ -123,6 +151,13 @@ export default function ProductDetail() {
               </svg>
             </div>
           )}
+          {allOutOfStock && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+              <span className="rounded-lg bg-red-600 px-4 py-2 text-lg font-bold text-white">
+                Out of Stock
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Product Info */}
@@ -142,7 +177,7 @@ export default function ProductDetail() {
 
           <p className="mt-4 text-gray-600">{product.description}</p>
 
-          {product.variants.length > 0 && (
+          {product.variants.length > 0 ? (
             <div className="mt-6">
               <VariantSelector
                 variants={product.variants}
@@ -154,6 +189,10 @@ export default function ProductDetail() {
                 onSelectMaterial={setSelectedMaterial}
               />
             </div>
+          ) : (
+            <div className="mt-6 rounded-lg border border-dashed border-gray-300 p-4 text-center text-sm text-gray-500">
+              No variants available for this product.
+            </div>
           )}
 
           {selectedVariant && (
@@ -164,6 +203,12 @@ export default function ProductDetail() {
             >
               {selectedVariant.stock === 0 ? 'Out of Stock' : 'Quick Buy'}
             </button>
+          )}
+
+          {selectedColor && selectedSize && selectedMaterial && !selectedVariant && (
+            <div className="mt-4 rounded-lg bg-yellow-50 p-3 text-center text-sm text-yellow-800">
+              This combination is not available.
+            </div>
           )}
         </div>
       </div>

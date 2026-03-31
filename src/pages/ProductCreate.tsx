@@ -29,6 +29,7 @@ type ProductFormData = z.infer<typeof productSchema>;
 export default function ProductCreate() {
   const navigate = useNavigate();
   const [apiError, setApiError] = useState<string | null>(null);
+  const [variantErrors, setVariantErrors] = useState<Record<number, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
   const {
@@ -54,6 +55,7 @@ export default function ProductCreate() {
 
   const onSubmit = async (data: ProductFormData) => {
     setApiError(null);
+    setVariantErrors({});
     setSubmitting(true);
 
     try {
@@ -64,18 +66,45 @@ export default function ProductCreate() {
         imageUrl: data.imageUrl || null,
       });
 
-      // Create variants sequentially to surface duplicate errors clearly
-      for (const variant of data.variants) {
-        await client.post(`/products/${product.id}/variants`, {
-          color: variant.color,
-          size: variant.size,
-          material: variant.material,
-          price: variant.price,
-          stock: variant.stock,
-        });
+      const variantErrs: Record<number, string> = {};
+
+      for (let i = 0; i < data.variants.length; i++) {
+        const variant = data.variants[i];
+        try {
+          await client.post(`/products/${product.id}/variants`, {
+            color: variant.color,
+            size: variant.size,
+            material: variant.material,
+            price: variant.price,
+            stock: variant.stock,
+          });
+        } catch (err) {
+          if (err instanceof AxiosError && err.response?.status === 409) {
+            const body = err.response.data as ApiError;
+            const message = Array.isArray(body.message)
+              ? body.message.join(', ')
+              : body.message;
+            variantErrs[i] = message;
+          } else if (err instanceof AxiosError && err.response?.data) {
+            const body = err.response.data as ApiError;
+            const message = Array.isArray(body.message)
+              ? body.message.join(', ')
+              : body.message;
+            variantErrs[i] = message;
+          } else {
+            variantErrs[i] = 'Failed to create this variant.';
+          }
+        }
       }
 
-      navigate(`/products/${product.id}`);
+      if (Object.keys(variantErrs).length > 0) {
+        setVariantErrors(variantErrs);
+        setApiError(
+          `Product created, but ${Object.keys(variantErrs).length} variant(s) failed. Fix the errors below and try creating them from the product page.`,
+        );
+      } else {
+        navigate(`/products/${product.id}`);
+      }
     } catch (err) {
       if (err instanceof AxiosError && err.response?.data) {
         const body = err.response.data as ApiError;
@@ -99,7 +128,10 @@ export default function ProductCreate() {
       <h1 className="mb-8 text-2xl font-bold text-gray-900">Create Product</h1>
 
       {apiError && (
-        <div className="mb-6 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+        <div
+          className="mb-6 rounded-lg bg-red-50 p-3 text-sm text-red-700"
+          role="alert"
+        >
           {apiError}
         </div>
       )}
@@ -120,9 +152,10 @@ export default function ProductCreate() {
                 className={inputClass}
                 placeholder="Product name"
                 {...register('name')}
+                aria-invalid={errors.name ? 'true' : 'false'}
               />
               {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                <p className="mt-1 text-sm text-red-600" role="alert">{errors.name.message}</p>
               )}
             </div>
 
@@ -136,9 +169,10 @@ export default function ProductCreate() {
                 className={inputClass}
                 placeholder="Product description"
                 {...register('description')}
+                aria-invalid={errors.description ? 'true' : 'false'}
               />
               {errors.description && (
-                <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+                <p className="mt-1 text-sm text-red-600" role="alert">{errors.description.message}</p>
               )}
             </div>
 
@@ -154,9 +188,10 @@ export default function ProductCreate() {
                   className={inputClass}
                   placeholder="0.00"
                   {...register('basePrice', { valueAsNumber: true })}
+                  aria-invalid={errors.basePrice ? 'true' : 'false'}
                 />
                 {errors.basePrice && (
-                  <p className="mt-1 text-sm text-red-600">{errors.basePrice.message}</p>
+                  <p className="mt-1 text-sm text-red-600" role="alert">{errors.basePrice.message}</p>
                 )}
               </div>
 
@@ -170,9 +205,10 @@ export default function ProductCreate() {
                   className={inputClass}
                   placeholder="https://example.com/image.jpg"
                   {...register('imageUrl')}
+                  aria-invalid={errors.imageUrl ? 'true' : 'false'}
                 />
                 {errors.imageUrl && (
-                  <p className="mt-1 text-sm text-red-600">{errors.imageUrl.message}</p>
+                  <p className="mt-1 text-sm text-red-600" role="alert">{errors.imageUrl.message}</p>
                 )}
               </div>
             </div>
@@ -198,7 +234,11 @@ export default function ProductCreate() {
             {fields.map((field, index) => (
               <div
                 key={field.id}
-                className="rounded-lg border border-gray-200 bg-gray-50 p-4"
+                className={`rounded-lg border p-4 ${
+                  variantErrors[index]
+                    ? 'border-red-300 bg-red-50'
+                    : 'border-gray-200 bg-gray-50'
+                }`}
               >
                 <div className="mb-3 flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-600">
@@ -207,13 +247,29 @@ export default function ProductCreate() {
                   {fields.length > 1 && (
                     <button
                       type="button"
-                      onClick={() => remove(index)}
+                      onClick={() => {
+                        remove(index);
+                        setVariantErrors((prev) => {
+                          const next = { ...prev };
+                          delete next[index];
+                          return next;
+                        });
+                      }}
                       className="text-sm text-red-600 hover:text-red-800"
                     >
                       Remove
                     </button>
                   )}
                 </div>
+
+                {variantErrors[index] && (
+                  <div
+                    className="mb-3 rounded-md bg-red-100 p-2 text-sm text-red-700"
+                    role="alert"
+                  >
+                    {variantErrors[index]}
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <div>
@@ -224,9 +280,10 @@ export default function ProductCreate() {
                       className={inputClass}
                       placeholder="e.g. Red"
                       {...register(`variants.${index}.color`)}
+                      aria-invalid={errors.variants?.[index]?.color ? 'true' : 'false'}
                     />
                     {errors.variants?.[index]?.color && (
-                      <p className="mt-1 text-xs text-red-600">
+                      <p className="mt-1 text-xs text-red-600" role="alert">
                         {errors.variants[index].color.message}
                       </p>
                     )}
@@ -240,9 +297,10 @@ export default function ProductCreate() {
                       className={inputClass}
                       placeholder="e.g. M"
                       {...register(`variants.${index}.size`)}
+                      aria-invalid={errors.variants?.[index]?.size ? 'true' : 'false'}
                     />
                     {errors.variants?.[index]?.size && (
-                      <p className="mt-1 text-xs text-red-600">
+                      <p className="mt-1 text-xs text-red-600" role="alert">
                         {errors.variants[index].size.message}
                       </p>
                     )}
@@ -256,9 +314,10 @@ export default function ProductCreate() {
                       className={inputClass}
                       placeholder="e.g. Cotton"
                       {...register(`variants.${index}.material`)}
+                      aria-invalid={errors.variants?.[index]?.material ? 'true' : 'false'}
                     />
                     {errors.variants?.[index]?.material && (
-                      <p className="mt-1 text-xs text-red-600">
+                      <p className="mt-1 text-xs text-red-600" role="alert">
                         {errors.variants[index].material.message}
                       </p>
                     )}
@@ -276,9 +335,10 @@ export default function ProductCreate() {
                       className={inputClass}
                       placeholder="0.00"
                       {...register(`variants.${index}.price`, { valueAsNumber: true })}
+                      aria-invalid={errors.variants?.[index]?.price ? 'true' : 'false'}
                     />
                     {errors.variants?.[index]?.price && (
-                      <p className="mt-1 text-xs text-red-600">
+                      <p className="mt-1 text-xs text-red-600" role="alert">
                         {errors.variants[index].price.message}
                       </p>
                     )}
@@ -293,9 +353,10 @@ export default function ProductCreate() {
                       className={inputClass}
                       placeholder="0"
                       {...register(`variants.${index}.stock`, { valueAsNumber: true })}
+                      aria-invalid={errors.variants?.[index]?.stock ? 'true' : 'false'}
                     />
                     {errors.variants?.[index]?.stock && (
-                      <p className="mt-1 text-xs text-red-600">
+                      <p className="mt-1 text-xs text-red-600" role="alert">
                         {errors.variants[index].stock.message}
                       </p>
                     )}
