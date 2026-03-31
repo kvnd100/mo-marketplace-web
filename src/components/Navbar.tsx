@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../store/auth-context';
 
 export default function Navbar() {
   const { isAuthenticated, logout, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -12,18 +13,27 @@ export default function Navbar() {
     navigate('/login');
   };
 
+  const isActive = (path: string) => location.pathname === path;
+
   return (
-    <nav className="bg-white shadow">
+    <nav className="sticky top-0 z-40 bg-white shadow" role="navigation" aria-label="Main navigation">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link to="/products" className="text-xl font-bold text-red-600">
+            <Link
+              to="/products"
+              className="text-xl font-bold tracking-tight text-red-600 transition hover:text-red-700"
+            >
               MO Marketplace
             </Link>
-            <div className="hidden sm:flex sm:gap-4">
+            <div className="hidden sm:flex sm:gap-1">
               <Link
                 to="/products"
-                className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                className={`rounded-md px-3 py-2 text-sm font-medium transition ${
+                  isActive('/products')
+                    ? 'bg-red-50 text-red-700'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                }`}
               >
                 Products
               </Link>
@@ -33,10 +43,10 @@ export default function Navbar() {
           <div className="hidden sm:flex sm:items-center sm:gap-4">
             {isAuthenticated ? (
               <>
-                <span className="text-sm text-gray-500">{user?.email}</span>
+                <span className="text-sm text-gray-500 truncate max-w-[200px]">{user?.email}</span>
                 <button
                   onClick={handleLogout}
-                  className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
+                  className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                 >
                   Logout
                 </button>
@@ -44,7 +54,7 @@ export default function Navbar() {
             ) : (
               <Link
                 to="/login"
-                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
                 Sign In
               </Link>
@@ -54,8 +64,9 @@ export default function Navbar() {
           {/* Mobile menu button */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 sm:hidden"
-            aria-label="Toggle menu"
+            className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500 sm:hidden"
+            aria-expanded={menuOpen}
+            aria-label="Toggle navigation menu"
           >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               {menuOpen ? (
@@ -75,13 +86,17 @@ export default function Navbar() {
             <Link
               to="/products"
               onClick={() => setMenuOpen(false)}
-              className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+              className={`block rounded-md px-3 py-2 text-base font-medium transition ${
+                isActive('/products')
+                  ? 'bg-red-50 text-red-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
               Products
             </Link>
             {isAuthenticated ? (
               <>
-                <span className="block px-3 py-2 text-sm text-gray-500">
+                <span className="block px-3 py-2 text-sm text-gray-500 truncate">
                   {user?.email}
                 </span>
                 <button
@@ -89,7 +104,7 @@ export default function Navbar() {
                     handleLogout();
                     setMenuOpen(false);
                   }}
-                  className="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-gray-700 hover:bg-gray-100"
+                  className="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-gray-700 transition hover:bg-gray-100"
                 >
                   Logout
                 </button>
@@ -98,7 +113,7 @@ export default function Navbar() {
               <Link
                 to="/login"
                 onClick={() => setMenuOpen(false)}
-                className="block rounded-md px-3 py-2 text-base font-medium text-red-600 hover:bg-gray-100"
+                className="block rounded-md px-3 py-2 text-base font-medium text-red-600 transition hover:bg-gray-100"
               >
                 Sign In
               </Link>

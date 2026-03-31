@@ -9,9 +9,9 @@ import ProductCreate from './pages/ProductCreate';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex min-h-screen flex-col bg-gray-50">
       <Navbar />
-      <main>
+      <main className="flex-1">
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -23,6 +23,9 @@ function App() {
           <Route path="*" element={<Navigate to="/products" replace />} />
         </Routes>
       </main>
+      <footer className="border-t border-gray-200 bg-white py-6 text-center text-sm text-gray-500">
+        MO Marketplace &mdash; Full-Stack Technical Assessment
+      </footer>
     </div>
   );
 }
