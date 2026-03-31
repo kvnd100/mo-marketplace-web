@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import client from '../api/client';
 import type { Product, Variant } from '../types';
 import VariantSelector from '../components/VariantSelector';
+import QuickBuy from '../components/QuickBuy';
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +15,8 @@ export default function ProductDetail() {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
+
+  const [quickBuyOpen, setQuickBuyOpen] = useState(false);
 
   useEffect(() => {
     client
@@ -153,9 +156,9 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* TODO: Quick Buy button*/}
           {selectedVariant && (
             <button
+              onClick={() => setQuickBuyOpen(true)}
               disabled={selectedVariant.stock === 0}
               className="mt-6 w-full rounded-lg bg-red-600 px-6 py-3 text-lg font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -164,6 +167,15 @@ export default function ProductDetail() {
           )}
         </div>
       </div>
+
+      {selectedVariant && (
+        <QuickBuy
+          product={product}
+          variant={selectedVariant}
+          open={quickBuyOpen}
+          onClose={() => setQuickBuyOpen(false)}
+        />
+      )}
     </div>
   );
 }
