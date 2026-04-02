@@ -3,18 +3,14 @@ import { Link } from 'react-router-dom';
 import client from '../api/client';
 import type { Product } from '../types';
 import { useAuth } from '../store/auth-context';
-import { useCart } from '../store/cart-context';
 import Icon from '../components/Icon';
-import ProductImage from '../components/ProductImage';
-import QuickAdd from '../components/QuickAdd';
+import ProductCard from '../components/ProductCard';
 
 export default function ProductList() {
   const { isAuthenticated } = useAuth();
-  const { addItem } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [quickAddProduct, setQuickAddProduct] = useState<Product | null>(null);
 
   // Filters
   const [priceRange, setPriceRange] = useState<[number, number]>([0, Infinity]);
@@ -111,7 +107,7 @@ export default function ProductList() {
     <div className="space-y-6">
       {/* Stock filter */}
       <div>
-        <h4 className="mb-3 font-label text-[10px] font-bold uppercase tracking-widest text-zinc-900">
+        <h4 className="mb-3 font-headline text-[10px] font-bold uppercase tracking-widest text-zinc-900">
           Availability
         </h4>
         <div className="space-y-2">
@@ -124,7 +120,7 @@ export default function ProductList() {
                 onChange={() => setStockFilter(val)}
                 className="h-3.5 w-3.5 border-zinc-300 text-primary focus:ring-primary"
               />
-              <span className="text-sm text-zinc-700 capitalize">
+              <span className="font-body text-sm font-normal text-zinc-700 capitalize">
                 {val === 'all' ? 'All' : val === 'in-stock' ? 'In Stock' : 'Out of Stock'}
               </span>
             </label>
@@ -135,7 +131,7 @@ export default function ProductList() {
       {/* Price filter */}
       {maxPrice > 0 && (
         <div>
-          <h4 className="mb-3 font-label text-[10px] font-bold uppercase tracking-widest text-zinc-900">
+          <h4 className="mb-3 font-headline text-[10px] font-bold uppercase tracking-widest text-zinc-900">
             Price
           </h4>
           <div className="space-y-2">
@@ -155,7 +151,7 @@ export default function ProductList() {
                   onChange={() => setPriceRange([min, max])}
                   className="h-3.5 w-3.5 border-zinc-300 text-primary focus:ring-primary"
                 />
-                <span className="text-sm text-zinc-700">{label}</span>
+                <span className="font-body text-sm font-normal text-zinc-700">{label}</span>
               </label>
             ))}
           </div>
@@ -165,7 +161,7 @@ export default function ProductList() {
       {/* Color filter */}
       {allColors.length > 0 && (
         <div>
-          <h4 className="mb-3 font-label text-[10px] font-bold uppercase tracking-widest text-zinc-900">
+          <h4 className="mb-3 font-headline text-[10px] font-bold uppercase tracking-widest text-zinc-900">
             Color
           </h4>
           <div className="space-y-2">
@@ -177,7 +173,7 @@ export default function ProductList() {
                   onChange={() => toggleFilter(selectedColors, setSelectedColors, color)}
                   className="h-3.5 w-3.5 rounded border-zinc-300 text-primary focus:ring-primary"
                 />
-                <span className="text-sm text-zinc-700">{color}</span>
+                <span className="font-body text-sm font-normal text-zinc-700">{color}</span>
               </label>
             ))}
           </div>
@@ -187,7 +183,7 @@ export default function ProductList() {
       {/* Size filter */}
       {allSizes.length > 0 && (
         <div>
-          <h4 className="mb-3 font-label text-[10px] font-bold uppercase tracking-widest text-zinc-900">
+          <h4 className="mb-3 font-headline text-[10px] font-bold uppercase tracking-widest text-zinc-900">
             Size
           </h4>
           <div className="space-y-2">
@@ -199,7 +195,7 @@ export default function ProductList() {
                   onChange={() => toggleFilter(selectedSizes, setSelectedSizes, size)}
                   className="h-3.5 w-3.5 rounded border-zinc-300 text-primary focus:ring-primary"
                 />
-                <span className="text-sm text-zinc-700">{size}</span>
+                <span className="font-body text-sm font-normal text-zinc-700">{size}</span>
               </label>
             ))}
           </div>
@@ -209,7 +205,7 @@ export default function ProductList() {
       {/* Material filter */}
       {allMaterials.length > 0 && (
         <div>
-          <h4 className="mb-3 font-label text-[10px] font-bold uppercase tracking-widest text-zinc-900">
+          <h4 className="mb-3 font-headline text-[10px] font-bold uppercase tracking-widest text-zinc-900">
             Material
           </h4>
           <div className="space-y-2">
@@ -221,7 +217,7 @@ export default function ProductList() {
                   onChange={() => toggleFilter(selectedMaterials, setSelectedMaterials, material)}
                   className="h-3.5 w-3.5 rounded border-zinc-300 text-primary focus:ring-primary"
                 />
-                <span className="text-sm text-zinc-700">{material}</span>
+                <span className="font-body text-sm font-normal text-zinc-700">{material}</span>
               </label>
             ))}
           </div>
@@ -231,7 +227,7 @@ export default function ProductList() {
       {hasActiveFilters && (
         <button
           onClick={clearAllFilters}
-          className="w-full rounded-lg border border-zinc-200 py-2 font-label text-xs font-bold uppercase tracking-widest text-zinc-600 transition hover:bg-zinc-50"
+          className="w-full rounded-lg border border-zinc-200 py-2 font-body text-xs font-semibold uppercase tracking-widest text-zinc-600 transition hover:bg-zinc-50"
         >
           Clear All Filters
         </button>
@@ -267,12 +263,29 @@ export default function ProductList() {
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {Array.from({ length: 10 }).map((_, i) => (
-                <div key={i} className="animate-pulse overflow-hidden rounded-lg border border-zinc-100 bg-white">
-                  <div className="aspect-square bg-zinc-200" />
-                  <div className="space-y-2 p-3">
-                    <div className="h-3 w-3/4 rounded bg-zinc-200" />
-                    <div className="h-4 w-1/3 rounded bg-zinc-200" />
-                    <div className="h-3 w-1/2 rounded bg-zinc-200" />
+                <div
+                  key={i}
+                  className="flex min-h-[28rem] animate-pulse flex-col overflow-hidden rounded-[1.35rem] border border-zinc-100 bg-white"
+                >
+                  <div className="p-3 pb-0">
+                    <div className="aspect-square rounded-2xl bg-zinc-200" />
+                  </div>
+                  <div className="flex flex-1 flex-col px-4 pb-4 pt-2">
+                    <div className="flex justify-between gap-2">
+                      <div className="h-4 flex-1 rounded bg-zinc-200" />
+                      <div className="h-5 w-12 rounded-md bg-zinc-200" />
+                    </div>
+                    <div className="mt-2 h-8 w-full rounded bg-zinc-100" />
+                    <div className="mt-4 h-3 w-24 rounded bg-zinc-100" />
+                    <div className="mt-2 flex gap-2">
+                      <div className="h-8 w-8 rounded-full bg-zinc-200" />
+                      <div className="h-8 w-8 rounded-full bg-zinc-200" />
+                      <div className="h-8 w-8 rounded-full bg-zinc-200" />
+                    </div>
+                    <div className="mt-auto flex justify-between border-t border-zinc-100 pt-3">
+                      <div className="h-6 w-20 rounded bg-zinc-200" />
+                      <div className="h-8 w-20 rounded-lg bg-zinc-200" />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -292,7 +305,7 @@ export default function ProductList() {
           <p className="mt-3 font-body text-on-error-container">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 rounded-lg bg-primary px-6 py-2.5 font-label text-xs font-black uppercase tracking-widest text-on-primary transition hover:bg-primary-container active:scale-95"
+            className="mt-4 rounded-lg bg-primary px-6 py-2.5 font-body text-xs font-semibold uppercase tracking-widest text-on-primary transition hover:bg-primary-container active:scale-95"
           >
             Retry
           </button>
@@ -316,7 +329,7 @@ export default function ProductList() {
           {isAuthenticated && (
             <Link
               to="/products/new"
-              className="mt-8 inline-block rounded-lg bg-primary px-8 py-3 font-label text-xs font-black uppercase tracking-widest text-on-primary transition-all hover:bg-primary-container active:scale-95"
+              className="mt-8 inline-block rounded-lg bg-primary px-8 py-3 font-body text-xs font-semibold uppercase tracking-widest text-on-primary transition-all hover:bg-primary-container active:scale-95"
             >
               Create Your First Product
             </Link>
@@ -333,7 +346,7 @@ export default function ProductList() {
       <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-2 lg:hidden">
         <button
           onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
-          className="flex items-center gap-1 font-label text-xs font-bold uppercase tracking-widest text-zinc-700"
+          className="flex items-center gap-1 font-body text-xs font-semibold uppercase tracking-widest text-zinc-700"
         >
           <Icon name="filter_list" className="text-base" />
           Filters
@@ -343,7 +356,7 @@ export default function ProductList() {
             </span>
           )}
         </button>
-        <span className="font-label text-xs text-zinc-500">
+        <span className="font-body text-xs font-normal text-zinc-500">
           {filteredProducts.length} result{filteredProducts.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -358,7 +371,7 @@ export default function ProductList() {
       <div className="flex">
         {/* Desktop sidebar */}
         <aside className="hidden w-56 shrink-0 overflow-y-auto border-r border-zinc-200 p-4 lg:block" style={{ height: 'calc(100vh - 4rem)', position: 'sticky', top: '4rem' }}>
-          <h3 className="mb-4 font-headline text-sm font-bold text-on-surface">Filters</h3>
+          <h3 className="mb-4 font-headline text-sm font-semibold text-on-surface">Filters</h3>
           {filterContent}
         </aside>
 
@@ -366,17 +379,17 @@ export default function ProductList() {
         <div className="flex-1 p-4">
           <div className="mb-4 flex items-end justify-between">
             <div>
-              <h1 className="font-headline text-xl font-black tracking-tight text-on-surface">
+              <h1 className="font-headline text-xl font-normal tracking-tight text-on-surface">
                 Products
               </h1>
-              <p className="mt-0.5 font-label text-xs text-zinc-500">
+              <p className="mt-0.5 font-body text-xs font-normal text-zinc-500">
                 {filteredProducts.length} of {products.length} result{products.length !== 1 ? 's' : ''}
               </p>
             </div>
             {isAuthenticated && (
               <Link
                 to="/products/new"
-                className="rounded-lg bg-primary px-4 py-2 font-label text-xs font-bold text-on-primary transition-all hover:bg-primary-container active:scale-95"
+                className="rounded-lg bg-primary px-4 py-2 font-body text-xs font-semibold text-on-primary transition-all hover:bg-primary-container active:scale-95"
               >
                 Add Product
               </Link>
@@ -391,98 +404,21 @@ export default function ProductList() {
               </p>
               <button
                 onClick={clearAllFilters}
-                className="mt-3 font-label text-xs font-bold uppercase tracking-widest text-primary transition hover:underline"
+                className="mt-3 font-body text-xs font-semibold uppercase tracking-widest text-primary transition hover:underline"
               >
                 Clear Filters
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
-              {filteredProducts.map((product) => {
-                const allOutOfStock =
-                  product.variants.length > 0 &&
-                  product.variants.every((v) => v.stock === 0);
-                const inStockVariants = product.variants.filter((v) => v.stock > 0);
-
-                const handleAddToCart = () => {
-                  if (inStockVariants.length === 1) {
-                    const v = inStockVariants[0];
-                    addItem({
-                      productId: product.id,
-                      productName: product.name,
-                      productImage: product.imageUrl,
-                      variantId: v.id,
-                      combinationKey: v.combinationKey,
-                      color: v.color,
-                      size: v.size,
-                      material: v.material,
-                      price: Number(v.price),
-                      stock: v.stock,
-                    });
-                  } else if (inStockVariants.length > 1) {
-                    setQuickAddProduct(product);
-                  }
-                };
-
-                return (
-                  <div
-                    key={product.id}
-                    className="group flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white transition-shadow hover:shadow-md"
-                  >
-                    <Link
-                      to={`/products/${product.id}`}
-                      className="relative aspect-square bg-surface-container-low"
-                    >
-                      <ProductImage src={product.imageUrl} alt={product.name} />
-                      {allOutOfStock && (
-                        <span className="absolute top-1.5 left-1.5 rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                          Out of Stock
-                        </span>
-                      )}
-                    </Link>
-                    <div className="flex flex-1 flex-col p-3">
-                      <Link to={`/products/${product.id}`}>
-                        <h2 className="line-clamp-2 text-sm font-normal text-on-surface transition-colors group-hover:text-primary">
-                          {product.name}
-                        </h2>
-                      </Link>
-                      <p className="mt-1 text-lg font-bold text-on-surface">
-                        ${Number(product.basePrice).toFixed(2)}
-                      </p>
-                      {product.variants.length > 0 && (
-                        <p className="mt-0.5 text-xs text-zinc-500">
-                          {product.variants.length}{' '}
-                          {product.variants.length === 1 ? 'variant' : 'variants'}
-                        </p>
-                      )}
-                      <button
-                        onClick={handleAddToCart}
-                        disabled={inStockVariants.length === 0}
-                        className="mt-auto pt-2 w-full rounded bg-primary py-1.5 text-xs font-bold text-on-primary transition hover:bg-primary-container active:scale-[0.98] disabled:opacity-40"
-                      >
-                        {inStockVariants.length === 0
-                          ? 'Out of Stock'
-                          : inStockVariants.length === 1
-                            ? 'Add to Cart'
-                            : 'Select Options'}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
+              {filteredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
             </div>
           )}
         </div>
       </div>
 
-      {/* QuickAdd modal for multi-variant products */}
-      {quickAddProduct && (
-        <QuickAdd
-          product={quickAddProduct}
-          open={!!quickAddProduct}
-          onClose={() => setQuickAddProduct(null)}
-        />
-      )}
     </div>
   );
 }

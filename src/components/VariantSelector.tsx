@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { Variant } from '../types';
+import { getVariantColorHex } from '../utils/variantColors';
 
 interface VariantSelectorProps {
   variants: Variant[];
@@ -9,28 +10,6 @@ interface VariantSelectorProps {
   onSelectColor: (color: string) => void;
   onSelectSize: (size: string) => void;
   onSelectMaterial: (material: string) => void;
-}
-
-const COLOR_MAP: Record<string, string> = {
-  white: '#ffffff',
-  black: '#1f1f1f',
-  red: '#dc2626',
-  blue: '#2563eb',
-  green: '#16a34a',
-  yellow: '#eab308',
-  pink: '#ec4899',
-  purple: '#9333ea',
-  orange: '#f97316',
-  gray: '#9ca3af',
-  grey: '#9ca3af',
-  silver: '#c0c0c0',
-  brown: '#92400e',
-  navy: '#1e3a5f',
-  beige: '#d4c5a9',
-};
-
-function getColorHex(colorName: string): string | null {
-  return COLOR_MAP[colorName.toLowerCase()] ?? null;
 }
 
 export default function VariantSelector({
@@ -115,7 +94,7 @@ export default function VariantSelector({
           {colors.map((color) => {
             const disabled = isOptionDisabled('color', color);
             const active = selectedColor === color;
-            const hex = getColorHex(color);
+            const hex = getVariantColorHex(color);
 
             return (
               <button
@@ -126,7 +105,7 @@ export default function VariantSelector({
                 role="radio"
                 aria-checked={active}
                 aria-label={`${color}${disabled ? ' (out of stock)' : ''}`}
-                className={`relative h-10 w-10 rounded-full border-2 p-0.5 transition-all ${
+                className={`relative h-10 w-10 overflow-hidden rounded-full border-2 transition-all ${
                   active
                     ? 'border-primary'
                     : disabled
