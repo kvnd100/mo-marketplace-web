@@ -28,6 +28,7 @@ const productSchema = z.object({
   name: z.string().min(1, 'Name is required').max(200, 'Name is too long'),
   description: z.string().min(1, 'Description is required'),
   basePrice: z.number().positive('Base price must be greater than 0'),
+  stock: z.number().int().min(0, 'Stock cannot be negative'),
   category: z.string().min(1, 'Category is required'),
   condition: z.enum(['new', 'used', 'refurbished']),
   images: z.array(z.string().url('Must be a valid URL')).min(0),
@@ -70,6 +71,7 @@ export default function ProductEdit() {
       name: '',
       description: '',
       basePrice: 0,
+      stock: 0,
       category: '',
       condition: 'new',
       images: [],
@@ -90,6 +92,7 @@ export default function ProductEdit() {
           name: p.name,
           description: p.description,
           basePrice: Number(p.basePrice),
+          stock: p.stock ?? 0,
           category: p.category || '',
           condition: p.condition || 'new',
           images: imgs,
@@ -161,6 +164,7 @@ export default function ProductEdit() {
         name: data.name,
         description: data.description,
         basePrice: data.basePrice,
+        stock: data.stock,
         imageUrl: data.images[0] || null,
         images: data.images,
         category: data.category,
@@ -329,6 +333,11 @@ export default function ProductEdit() {
                   {errors.basePrice && <p className="mt-1 text-xs text-red-600">{errors.basePrice.message}</p>}
                 </div>
                 <div>
+                  <label htmlFor="stock" className="mb-1.5 block text-xs font-medium text-zinc-600">Stock</label>
+                  <input id="stock" type="number" className={inputClass} placeholder="0" {...register('stock', { valueAsNumber: true })} aria-invalid={errors.stock ? 'true' : 'false'} />
+                  {errors.stock && <p className="mt-1 text-xs text-red-600">{errors.stock.message}</p>}
+                </div>
+                <div>
                   <label htmlFor="category" className="mb-1.5 block text-xs font-medium text-zinc-600">Category</label>
                   <select id="category" className={selectClass} {...register('category')} aria-invalid={errors.category ? 'true' : 'false'}>
                     <option value="">Select a category</option>
@@ -427,9 +436,8 @@ export default function ProductEdit() {
             </div>
             <div className="divide-y divide-zinc-100">
               {fields.length === 0 && (
-                <div className="py-12 text-center">
-                  <Icon name="inventory_2" className="mx-auto text-4xl text-zinc-300" />
-                  <p className="mt-2 text-sm text-zinc-500">No variants yet. Add one to get started.</p>
+                <div className="p-6 text-center text-sm text-zinc-400">
+                  No variants added. The product will be sold at the base price with product-level stock.
                 </div>
               )}
               {fields.map((field, index) => (

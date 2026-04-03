@@ -112,13 +112,14 @@ export default function ProductCard({ product }: ProductCardProps) {
     ? Number(selectedVariant.price)
     : Number(product.basePrice);
 
+  const canBuyBase = variants.length === 0;
   const canQuickBuy =
-    selectedVariant && selectedVariant.stock > 0 && variants.length > 0;
+    canBuyBase || (selectedVariant && selectedVariant.stock > 0);
 
   const handleQuickBuy = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!selectedVariant || selectedVariant.stock <= 0) return;
+    if (!canBuyBase && (!selectedVariant || selectedVariant.stock <= 0)) return;
     setQuickBuyOpen(true);
   };
 
@@ -283,10 +284,10 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </div>
 
-      {selectedVariant && (
+      {(selectedVariant || canBuyBase) && (
         <QuickBuy
           product={product}
-          variant={selectedVariant}
+          variant={selectedVariant ?? null}
           open={quickBuyOpen}
           onClose={() => setQuickBuyOpen(false)}
         />

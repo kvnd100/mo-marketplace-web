@@ -5,7 +5,7 @@ import { useCart } from '../store/cart-context';
 
 interface QuickBuyProps {
   product: Product;
-  variant: Variant;
+  variant: Variant | null;
   open: boolean;
   onClose: () => void;
 }
@@ -30,24 +30,39 @@ export default function QuickBuy({ product, variant, open, onClose }: QuickBuyPr
   };
 
   const handleConfirm = () => {
-    addItem({
-      productId: product.id,
-      productName: product.name,
-      productImage: product.imageUrl,
-      variantId: variant.id,
-      combinationKey: variant.combinationKey,
-      color: variant.color,
-      size: variant.size,
-      material: variant.material,
-      price: Number(variant.price),
-      stock: variant.stock,
-    });
+    if (variant) {
+      addItem({
+        productId: product.id,
+        productName: product.name,
+        productImage: variant.imageUrl || product.images?.[0] || product.imageUrl,
+        variantId: variant.id,
+        combinationKey: variant.combinationKey,
+        color: variant.color,
+        size: variant.size,
+        material: variant.material,
+        price: Number(variant.price),
+        stock: variant.stock,
+      });
+    } else {
+      addItem({
+        productId: product.id,
+        productName: product.name,
+        productImage: product.images?.[0] || product.imageUrl,
+        variantId: null,
+        combinationKey: null,
+        color: null,
+        size: null,
+        material: null,
+        price: Number(product.basePrice),
+        stock: product.stock ?? 0,
+      });
+    }
     setConfirmed(true);
   };
 
   if (!open) return null;
 
-  const isOutOfStock = variant.stock === 0;
+  const isOutOfStock = variant ? variant.stock === 0 : false;
 
   return (
     <div
@@ -74,8 +89,8 @@ export default function QuickBuy({ product, variant, open, onClose }: QuickBuyPr
               Order Confirmed!
             </h2>
             <p className="mt-2 font-body text-sm text-zinc-500">
-              Your order for <span className="font-semibold text-on-surface">{product.name}</span>{' '}
-              ({variant.combinationKey}) has been placed successfully.
+              Your order for <span className="font-semibold text-on-surface">{product.name}</span>
+              {variant ? ` (${variant.combinationKey})` : ''} has been placed successfully.
             </p>
             <button
               onClick={handleClose}
@@ -101,40 +116,46 @@ export default function QuickBuy({ product, variant, open, onClose }: QuickBuyPr
 
             <div className="rounded-xl border border-zinc-200 bg-surface-container-low p-5">
               <h3 className="font-headline font-bold text-on-surface">{product.name}</h3>
-              <div className="mt-3 space-y-2">
-                <div className="flex justify-between border-b border-zinc-200/50 pb-2">
-                  <span className="font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-                    Color
-                  </span>
-                  <span className="text-sm font-semibold">{variant.color}</span>
-                </div>
-                <div className="flex justify-between border-b border-zinc-200/50 pb-2">
-                  <span className="font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-                    Size
-                  </span>
-                  <span className="text-sm font-semibold">{variant.size}</span>
-                </div>
-                <div className="flex justify-between border-b border-zinc-200/50 pb-2">
-                  <span className="font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-                    Material
-                  </span>
-                  <span className="text-sm font-semibold">{variant.material}</span>
-                </div>
-                {variant.sku && (
+              {variant ? (
+                <div className="mt-3 space-y-2">
                   <div className="flex justify-between border-b border-zinc-200/50 pb-2">
                     <span className="font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-                      SKU
+                      Color
                     </span>
-                    <span className="font-mono text-sm font-semibold">{variant.sku}</span>
+                    <span className="text-sm font-semibold">{variant.color}</span>
                   </div>
-                )}
-              </div>
+                  <div className="flex justify-between border-b border-zinc-200/50 pb-2">
+                    <span className="font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                      Size
+                    </span>
+                    <span className="text-sm font-semibold">{variant.size}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-zinc-200/50 pb-2">
+                    <span className="font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                      Material
+                    </span>
+                    <span className="text-sm font-semibold">{variant.material}</span>
+                  </div>
+                  {variant.sku && (
+                    <div className="flex justify-between border-b border-zinc-200/50 pb-2">
+                      <span className="font-label text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                        SKU
+                      </span>
+                      <span className="font-mono text-sm font-semibold">{variant.sku}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-zinc-500">{product.category || 'Base product'}</p>
+              )}
               <div className="mt-4 flex items-center justify-between border-t border-zinc-200 pt-4">
                 <span className="font-label text-xs text-zinc-500">
-                  {variant.stock > 0 ? `${variant.stock} in stock` : 'Out of stock'}
+                  {variant
+                    ? (variant.stock > 0 ? `${variant.stock} in stock` : 'Out of stock')
+                    : ((product.stock ?? 0) > 0 ? `${product.stock} in stock` : 'Out of stock')}
                 </span>
                 <span className="font-headline text-2xl font-bold text-primary">
-                  ${Number(variant.price).toFixed(2)}
+                  ${Number(variant ? variant.price : product.basePrice).toFixed(2)}
                 </span>
               </div>
             </div>

@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import client from '../api/client';
-import type { Product, Category } from '../types';
+import type { Product, Category, PaginatedResponse, PaginationMeta } from '../types';
 import { useAuth } from '../store/auth-context';
 import Icon from '../components/Icon';
 import ProductCard from '../components/ProductCard';
@@ -56,6 +56,9 @@ export default function ProductList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [apiCategories, setApiCategories] = useState<Category[]>([]);
+  const [page, setPage] = useState(1);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
+  const ITEMS_PER_PAGE = 20;
 
   // Filters
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
@@ -69,12 +72,24 @@ export default function ProductList() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  useEffect(() => {
+  const fetchProducts = useCallback((p: number) => {
+    setLoading(true);
+    setError(null);
     client
-      .get<Product[]>('/products')
-      .then((res) => setProducts(res.data))
+      .get<PaginatedResponse<Product>>('/products', { params: { page: p, limit: ITEMS_PER_PAGE } })
+      .then((res) => {
+        setProducts(res.data.data);
+        setMeta(res.data.meta);
+      })
       .catch(() => setError('Failed to load products. Please try again later.'))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetchProducts(page);
+  }, [page, fetchProducts]);
+
+  useEffect(() => {
     client
       .get<Category[]>('/categories')
       .then((res) => setApiCategories(res.data))
@@ -491,7 +506,7 @@ export default function ProductList() {
         </button>
         <div className="flex items-center gap-3">
           <span className="text-xs text-zinc-500">
-            {filteredProducts.length} result{filteredProducts.length !== 1 ? 's' : ''}
+            {meta?.total ?? filteredProducts.length} result{(meta?.total ?? filteredProducts.length) !== 1 ? 's' : ''}
           </span>
           <select
             value={sortBy}
@@ -559,7 +574,7 @@ export default function ProductList() {
                   Results
                 </h1>
                 <span className="text-sm text-zinc-500">
-                  {filteredProducts.length} of {products.length}
+                  {filteredProducts.length} of {meta?.total ?? products.length}
                 </span>
               </div>
               {/* Active filter chips */}
@@ -689,6 +704,65 @@ export default function ProductList() {
               {filteredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {meta && meta.totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-center gap-2">
+              <button
+                onClick={() => setPage(1)}
+                disabled={page === 1}
+                className="rounded-lg border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Icon name="first_page" className="text-sm" />
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="rounded-lg border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Icon name="chevron_left" className="text-sm" />
+              </button>
+
+              {(() => {
+                const pages: number[] = [];
+                const start = Math.max(1, page - 2);
+                const end = Math.min(meta.totalPages, page + 2);
+                for (let i = start; i <= end; i++) pages.push(i);
+                return pages.map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`rounded-lg border px-3.5 py-2 text-xs font-semibold transition ${
+                      p === page
+                        ? 'border-primary bg-primary text-on-primary'
+                        : 'border-zinc-200 text-zinc-600 hover:bg-zinc-50'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ));
+              })()}
+
+              <button
+                onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
+                disabled={page === meta.totalPages}
+                className="rounded-lg border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Icon name="chevron_right" className="text-sm" />
+              </button>
+              <button
+                onClick={() => setPage(meta.totalPages)}
+                disabled={page === meta.totalPages}
+                className="rounded-lg border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Icon name="last_page" className="text-sm" />
+              </button>
+
+              <span className="ml-3 text-xs text-zinc-500">
+                Page {meta.page} of {meta.totalPages}
+              </span>
             </div>
           )}
         </div>

@@ -158,14 +158,40 @@ export default function ProductDetail() {
         )
       : undefined;
 
-  const allOutOfStock = product.variants.length > 0 && product.variants.every((v) => v.stock === 0);
+  const hasVariants = product.variants.length > 0;
+  const allOutOfStock = hasVariants && product.variants.every((v) => v.stock === 0);
   const totalStock = product.variants.reduce((sum, v) => sum + v.stock, 0);
   const displayPrice = selectedVariant ? Number(selectedVariant.price) : Number(product.basePrice);
   const rating = product.rating ?? 4.5;
   const reviewCount = product.reviewCount ?? 0;
-  const maxQty = selectedVariant ? Math.min(selectedVariant.stock, 30) : 0;
+
+  // For products without variants, allow purchasing at base price
+  const canBuyBase = !hasVariants;
+  const baseStock = product.stock ?? 0;
+  const baseMaxQty = canBuyBase ? Math.min(baseStock, 30) : 0;
+  const maxQty = selectedVariant ? Math.min(selectedVariant.stock, 30) : baseMaxQty;
 
   const handleAddToCart = () => {
+    if (canBuyBase) {
+      if (baseStock <= 0) return;
+      for (let i = 0; i < quantity; i++) {
+        addItem({
+          productId: product.id,
+          productName: product.name,
+          productImage: product.images?.[0] || product.imageUrl,
+          variantId: null,
+          combinationKey: null,
+          color: null,
+          size: null,
+          material: null,
+          price: Number(product.basePrice),
+          stock: baseStock,
+        });
+      }
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 2000);
+      return;
+    }
     if (!selectedVariant || selectedVariant.stock === 0) return;
     for (let i = 0; i < quantity; i++) {
       addItem({
@@ -373,11 +399,7 @@ export default function ProductDetail() {
               onSelectSize={setSelectedSize}
               onSelectMaterial={setSelectedMaterial}
             />
-          ) : (
-            <div className="rounded-lg border border-dashed border-zinc-300 p-6 text-center text-xs text-zinc-400">
-              No variants available
-            </div>
-          )}
+          ) : null}
 
           {/* Combination not found */}
           {selectedColor && selectedSize && selectedMaterial && !selectedVariant && (
@@ -424,7 +446,13 @@ export default function ProductDetail() {
             <hr className="my-4 border-zinc-100" />
 
             {/* Stock status */}
-            {selectedVariant ? (
+            {canBuyBase ? (
+              baseStock > 0 ? (
+                <p className="text-lg font-semibold text-green-700">In Stock</p>
+              ) : (
+                <p className="text-lg font-semibold text-red-600">Out of Stock</p>
+              )
+            ) : selectedVariant ? (
               selectedVariant.stock > 0 ? (
                 <p className="text-lg font-semibold text-green-700">In Stock</p>
               ) : (
@@ -434,6 +462,11 @@ export default function ProductDetail() {
               <p className="text-sm text-zinc-500">Select options above</p>
             )}
 
+            {canBuyBase && baseStock > 0 && baseStock <= 5 && (
+              <p className="mt-1 text-xs font-medium text-primary">
+                Only {baseStock} left in stock - order soon.
+              </p>
+            )}
             {selectedVariant && selectedVariant.stock > 0 && selectedVariant.stock <= 5 && (
               <p className="mt-1 text-xs font-medium text-primary">
                 Only {selectedVariant.stock} left in stock - order soon.
@@ -441,7 +474,7 @@ export default function ProductDetail() {
             )}
 
             {/* Quantity selector */}
-            {selectedVariant && selectedVariant.stock > 0 && (
+            {((canBuyBase && baseStock > 0) || (selectedVariant && selectedVariant.stock > 0)) && (
               <div className="mt-4">
                 <label className="mb-1.5 block text-xs font-medium text-zinc-600">Quantity:</label>
                 <select
@@ -461,22 +494,24 @@ export default function ProductDetail() {
             {/* Add to Cart button */}
             <button
               onClick={handleAddToCart}
-              disabled={!selectedVariant || selectedVariant.stock === 0}
+              disabled={(canBuyBase && baseStock <= 0) || (!canBuyBase && (!selectedVariant || selectedVariant.stock === 0))}
               className="mt-4 w-full rounded-full bg-amber-400 py-2.5 text-sm font-bold text-zinc-900 transition hover:bg-amber-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {addedToCart
                 ? 'Added to Cart!'
-                : !selectedVariant
-                  ? 'Select Options'
-                  : selectedVariant.stock === 0
-                    ? 'Out of Stock'
-                    : 'Add to Cart'}
+                : canBuyBase
+                  ? baseStock <= 0 ? 'Out of Stock' : 'Add to Cart'
+                  : !selectedVariant
+                    ? 'Select Options'
+                    : selectedVariant.stock === 0
+                      ? 'Out of Stock'
+                      : 'Add to Cart'}
             </button>
 
             {/* Buy Now / Quick Buy */}
             <button
-              onClick={() => selectedVariant && setQuickBuyOpen(true)}
-              disabled={!selectedVariant || selectedVariant.stock === 0}
+              onClick={() => ((canBuyBase && baseStock > 0) || selectedVariant) && setQuickBuyOpen(true)}
+              disabled={(canBuyBase && baseStock <= 0) || (!canBuyBase && (!selectedVariant || selectedVariant.stock === 0))}
               className="mt-2 w-full rounded-full bg-primary py-2.5 text-sm font-bold text-on-primary transition hover:bg-primary-container active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
             >
               Buy Now
@@ -552,7 +587,7 @@ export default function ProductDetail() {
                   </tr>
                   <tr className="border-b border-zinc-100">
                     <td className="bg-zinc-50 px-4 py-2.5 font-medium text-zinc-600">Total Stock</td>
-                    <td className="px-4 py-2.5 text-zinc-800">{totalStock} units</td>
+                    <td className="px-4 py-2.5 text-zinc-800">{hasVariants ? totalStock : (product.stock ?? 0)} units</td>
                   </tr>
                   {product.variants.length > 0 && (
                     <>
@@ -641,10 +676,10 @@ export default function ProductDetail() {
       )}
 
       {/* Quick Buy Modal */}
-      {selectedVariant && (
+      {(selectedVariant || canBuyBase) && (
         <QuickBuy
           product={product}
-          variant={selectedVariant}
+          variant={selectedVariant ?? null}
           open={quickBuyOpen}
           onClose={() => setQuickBuyOpen(false)}
         />

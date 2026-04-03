@@ -37,14 +37,18 @@ function saveCart(items: CartItem[]) {
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(loadCart);
 
+  const cartKey = (item: { variantId: string | null; productId: string }) =>
+    item.variantId ?? `product:${item.productId}`;
+
   const addItem = useCallback((item: Omit<CartItem, 'quantity'>) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.variantId === item.variantId);
+      const key = cartKey(item);
+      const existing = prev.find((i) => cartKey(i) === key);
       let next: CartItem[];
       if (existing) {
         const newQty = Math.min(existing.quantity + 1, item.stock);
         next = prev.map((i) =>
-          i.variantId === item.variantId ? { ...i, quantity: newQty } : i,
+          cartKey(i) === key ? { ...i, quantity: newQty } : i,
         );
       } else {
         next = [...prev, { ...item, quantity: 1 }];
@@ -54,23 +58,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const removeItem = useCallback((variantId: string) => {
+  const removeItem = useCallback((id: string) => {
     setItems((prev) => {
-      const next = prev.filter((i) => i.variantId !== variantId);
+      const next = prev.filter((i) => cartKey(i) !== id);
       saveCart(next);
       return next;
     });
   }, []);
 
-  const updateQuantity = useCallback((variantId: string, quantity: number) => {
+  const updateQuantity = useCallback((id: string, quantity: number) => {
     setItems((prev) => {
       if (quantity <= 0) {
-        const next = prev.filter((i) => i.variantId !== variantId);
+        const next = prev.filter((i) => cartKey(i) !== id);
         saveCart(next);
         return next;
       }
       const next = prev.map((i) =>
-        i.variantId === variantId
+        cartKey(i) === id
           ? { ...i, quantity: Math.min(quantity, i.stock) }
           : i,
       );

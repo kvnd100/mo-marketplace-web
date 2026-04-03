@@ -28,6 +28,7 @@ const productSchema = z.object({
   name: z.string().min(1, 'Name is required').max(200, 'Name is too long'),
   description: z.string().min(1, 'Description is required'),
   basePrice: z.number().positive('Base price must be greater than 0'),
+  stock: z.number().int().min(0, 'Stock cannot be negative'),
   category: z.string().min(1, 'Category is required'),
   condition: z.enum(['new', 'used', 'refurbished']),
   images: z.array(z.string().url('Must be a valid URL')).min(0),
@@ -63,10 +64,11 @@ export default function ProductCreate() {
       name: '',
       description: '',
       basePrice: 0,
+      stock: 0,
       category: '',
       condition: 'new',
       images: [],
-      variants: [{ color: '', size: '', material: '', price: 0, stock: 0, imageUrl: '' }],
+      variants: [],
     },
   });
 
@@ -109,6 +111,7 @@ export default function ProductCreate() {
         name: data.name,
         description: data.description,
         basePrice: data.basePrice,
+        stock: data.stock,
         imageUrl: data.images[0] || null,
         images: data.images,
         category: data.category,
@@ -181,7 +184,7 @@ export default function ProductCreate() {
             <span className="text-zinc-400">New Product</span>
           </nav>
           <h1 className="font-headline text-2xl font-bold tracking-tight text-on-surface">Create Product</h1>
-          <p className="mt-1 text-sm text-zinc-500">Add a new product with variants to your catalog.</p>
+          <p className="mt-1 text-sm text-zinc-500">Add a new product to your catalog. Variants are optional.</p>
         </div>
 
         {apiError && (
@@ -208,6 +211,11 @@ export default function ProductCreate() {
                   <label htmlFor="basePrice" className="mb-1.5 block text-xs font-medium text-zinc-600">Base Price ($)</label>
                   <input id="basePrice" type="number" step="0.01" className={inputClass} placeholder="0.00" {...register('basePrice', { valueAsNumber: true })} aria-invalid={errors.basePrice ? 'true' : 'false'} />
                   {errors.basePrice && <p className="mt-1 text-xs text-red-600" role="alert">{errors.basePrice.message}</p>}
+                </div>
+                <div>
+                  <label htmlFor="stock" className="mb-1.5 block text-xs font-medium text-zinc-600">Stock</label>
+                  <input id="stock" type="number" className={inputClass} placeholder="0" {...register('stock', { valueAsNumber: true })} aria-invalid={errors.stock ? 'true' : 'false'} />
+                  {errors.stock && <p className="mt-1 text-xs text-red-600" role="alert">{errors.stock.message}</p>}
                 </div>
                 <div>
                   <label htmlFor="category" className="mb-1.5 block text-xs font-medium text-zinc-600">Category</label>
@@ -307,6 +315,11 @@ export default function ProductCreate() {
               </button>
             </div>
             <div className="divide-y divide-zinc-100">
+              {fields.length === 0 && (
+                <div className="p-6 text-center text-sm text-zinc-400">
+                  No variants added. The product will be sold at the base price.
+                </div>
+              )}
               {fields.map((field, index) => (
                 <div key={field.id} className={`p-6 ${variantErrors[index] ? 'bg-red-50/50' : ''}`}>
                   <div className="mb-4 flex items-center justify-between">
@@ -316,23 +329,21 @@ export default function ProductCreate() {
                       </span>
                       Variant
                     </span>
-                    {fields.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          remove(index);
-                          setVariantErrors((prev) => {
-                            const next = { ...prev };
-                            delete next[index];
-                            return next;
-                          });
-                        }}
-                        className="flex items-center gap-1 text-xs font-medium text-red-500 transition hover:text-red-700"
-                      >
-                        <Icon name="close" className="text-sm" />
-                        Remove
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        remove(index);
+                        setVariantErrors((prev) => {
+                          const next = { ...prev };
+                          delete next[index];
+                          return next;
+                        });
+                      }}
+                      className="flex items-center gap-1 text-xs font-medium text-red-500 transition hover:text-red-700"
+                    >
+                      <Icon name="close" className="text-sm" />
+                      Remove
+                    </button>
                   </div>
 
                   {variantErrors[index] && (

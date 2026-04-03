@@ -28,6 +28,7 @@ export interface Product {
   name: string;
   description: string;
   basePrice: number;
+  stock: number;
   imageUrl: string | null;
   images: string[];
   category?: string;
@@ -40,6 +41,18 @@ export interface Product {
   variants: Variant[];
 }
 
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
+
 export interface AuthResponse {
   access_token: string;
   user: User;
@@ -49,11 +62,11 @@ export interface CartItem {
   productId: string;
   productName: string;
   productImage: string | null;
-  variantId: string;
-  combinationKey: string;
-  color: string;
-  size: string;
-  material: string;
+  variantId: string | null;
+  combinationKey: string | null;
+  color: string | null;
+  size: string | null;
+  material: string | null;
   price: number;
   stock: number;
   quantity: number;
