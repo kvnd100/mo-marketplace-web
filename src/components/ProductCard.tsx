@@ -122,174 +122,161 @@ export default function ProductCard({ product }: ProductCardProps) {
     setQuickBuyOpen(true);
   };
 
+  const ratingDisplay =
+    product.rating != null && product.rating > 0 ? product.rating.toFixed(1) : null;
+
+  const displayImage = selectedVariant?.imageUrl || product.images?.[0] || product.imageUrl;
+
   return (
-    <article className="flex h-full min-h-[28rem] flex-col overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white shadow-sm transition-shadow hover:shadow-md">
-      <div className="p-3 pb-0">
+    <article className="flex h-full flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white transition-shadow hover:shadow-md">
+      <div className="px-3 pt-3">
         <Link
           to={`/products/${product.id}`}
-          className="relative block aspect-square overflow-hidden rounded-2xl bg-white"
+          className="relative block w-full overflow-hidden rounded-md bg-zinc-50 aspect-[3/4]"
         >
           <ProductImage
-            src={product.images?.[0] || product.imageUrl}
+            src={displayImage}
             alt={product.name}
-            className="h-full w-full object-contain p-2"
+            className="h-full w-full object-contain p-2 sm:p-2.5"
           />
           {allOutOfStock && (
-            <span className="absolute top-2 left-2 rounded bg-zinc-800 px-2 py-0.5 font-body text-[10px] font-semibold uppercase tracking-wider text-white">
+            <span className="absolute top-2 left-2 rounded bg-zinc-800 px-2 py-0.5 font-body text-[10px] font-semibold uppercase tracking-wide text-white">
               Out of Stock
             </span>
           )}
         </Link>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col px-4 pb-4 pt-2">
-        <div>
-          <Link to={`/products/${product.id}`} className="block min-w-0">
-            <h3 className="font-headline text-xl font-bold leading-snug text-zinc-900 transition-colors hover:text-primary">
-              {product.name}
-            </h3>
-          </Link>
+      <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-2.5">
+        <Link to={`/products/${product.id}`} className="block min-w-0">
+          <h3 className="line-clamp-3 font-body text-sm font-medium leading-snug text-zinc-900 transition-colors hover:text-primary sm:text-[15px] sm:leading-snug">
+            {product.name}
+          </h3>
+        </Link>
+
+        {ratingDisplay && (
           <div
-            className="mt-1.5 flex w-fit items-center gap-0.5 rounded-md bg-zinc-100 px-1.5 py-0.5"
-            aria-label="Rating 4.9 out of 5"
+            className="mt-2 flex w-fit items-center gap-1"
+            aria-label={`Rating ${ratingDisplay} out of 5`}
           >
             <Icon name="star" filled className="text-sm text-amber-500" />
-            <span className="font-body text-xs font-normal text-zinc-700">4.9</span>
+            <span className="font-body text-xs text-zinc-600">{ratingDisplay}</span>
           </div>
-        </div>
-
-        <p className="mt-2 min-h-[2.5rem] line-clamp-2 font-body text-sm font-normal leading-relaxed text-zinc-500">
-          {product.description?.trim() ? product.description : '\u00A0'}
-        </p>
+        )}
 
         {variants.length > 0 && (
-          <div className="mt-3 space-y-3">
-            {colors.length > 0 && (
-              <div>
-                <h4 className="mb-2 font-headline text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-                  Available finishes
-                </h4>
-                <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Color">
-                  {colors.map((color) => {
-                    const disabled = isOptionDisabled('color', color);
-                    const active = selectedColor === color;
-                    const hex = getVariantColorHex(color);
-                    return (
-                      <button
-                        key={color}
-                        type="button"
-                        disabled={disabled}
-                        onClick={() => {
-                          setSelectedColor(color);
-                          resolveAfterColor(color);
-                        }}
-                        title={color}
-                        aria-label={`${color}${disabled ? ' (unavailable)' : ''}`}
-                        className={`relative h-6 w-6 shrink-0 overflow-hidden rounded-full border-2 transition-all ${
-                          active
-                            ? 'border-primary'
-                            : disabled
-                              ? 'cursor-not-allowed border-zinc-100 opacity-40'
-                              : 'border-transparent hover:border-zinc-300'
-                        }`}
-                      >
-                        <div
-                          className={`h-full w-full rounded-full shadow-inner ${
-                            hex ? '' : 'bg-zinc-300'
-                          } ${hex === '#ffffff' ? 'border border-zinc-200' : ''}`}
-                          style={hex ? { backgroundColor: hex } : undefined}
-                        />
-                        {disabled && (
-                          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                            <div className="h-[2px] w-6 rotate-45 rounded bg-zinc-400" />
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+          <div className="mt-2 shrink-0 space-y-2">
+            {colors.length > 1 && (
+              <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Color">
+                {colors.map((color) => {
+                  const disabled = isOptionDisabled('color', color);
+                  const active = selectedColor === color;
+                  const hex = getVariantColorHex(color);
+                  return (
+                    <button
+                      key={color}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => {
+                        setSelectedColor(color);
+                        resolveAfterColor(color);
+                      }}
+                      title={color}
+                      aria-label={`${color}${disabled ? ' (unavailable)' : ''}`}
+                      className={`relative h-5 w-5 shrink-0 overflow-hidden rounded-full border-2 transition-all ${
+                        active
+                          ? 'border-primary'
+                          : disabled
+                            ? 'cursor-not-allowed border-zinc-100 opacity-40'
+                            : 'border-transparent hover:border-zinc-300'
+                      }`}
+                    >
+                      <div
+                        className={`h-full w-full rounded-full shadow-inner ${
+                          hex ? '' : 'bg-zinc-300'
+                        } ${hex === '#ffffff' ? 'border border-zinc-200' : ''}`}
+                        style={hex ? { backgroundColor: hex } : undefined}
+                      />
+                      {disabled && (
+                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                          <div className="h-[1.5px] w-5 rotate-45 rounded bg-zinc-400" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
 
             {sizes.length > 1 && (
-              <div>
-                <h4 className="mb-1.5 font-headline text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-                  Size
-                </h4>
-                <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Size">
-                  {sizes.map((size) => {
-                    const disabled = isOptionDisabled('size', size);
-                    const active = selectedSize === size;
-                    return (
-                      <button
-                        key={size}
-                        type="button"
-                        disabled={disabled}
-                        onClick={() => {
-                          setSelectedSize(size);
-                          resolveAfterSize(size);
-                        }}
-                        className={`rounded-md border px-2 py-1 font-body text-[10px] font-semibold uppercase tracking-wide transition ${
-                          active
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : disabled
-                              ? 'cursor-not-allowed border-zinc-100 text-zinc-300 line-through'
-                              : 'border-zinc-200 text-zinc-600 hover:border-zinc-300'
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    );
-                  })}
-                </div>
+              <div className="flex flex-wrap gap-1" role="radiogroup" aria-label="Size">
+                {sizes.map((size) => {
+                  const disabled = isOptionDisabled('size', size);
+                  const active = selectedSize === size;
+                  return (
+                    <button
+                      key={size}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => {
+                        setSelectedSize(size);
+                        resolveAfterSize(size);
+                      }}
+                      className={`rounded border px-1.5 py-0.5 font-body text-[9px] font-semibold uppercase tracking-wide transition ${
+                        active
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : disabled
+                            ? 'cursor-not-allowed border-zinc-100 text-zinc-300 line-through'
+                            : 'border-zinc-200 text-zinc-600 hover:border-zinc-300'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  );
+                })}
               </div>
             )}
 
             {materials.length > 1 && (
-              <div>
-                <h4 className="mb-1.5 font-headline text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-                  Material
-                </h4>
-                <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Material">
-                  {materials.map((material) => {
-                    const disabled = isOptionDisabled('material', material);
-                    const active = selectedMaterial === material;
-                    return (
-                      <button
-                        key={material}
-                        type="button"
-                        disabled={disabled}
-                        onClick={() => {
-                          setSelectedMaterial(material);
-                          resolveAfterMaterial(material);
-                        }}
-                        className={`max-w-full truncate rounded-md border px-2 py-1 font-body text-[10px] font-semibold uppercase tracking-wide transition ${
-                          active
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : disabled
-                              ? 'cursor-not-allowed border-zinc-100 text-zinc-300 line-through'
-                              : 'border-zinc-200 text-zinc-600 hover:border-zinc-300'
-                        }`}
-                      >
-                        {material}
-                      </button>
-                    );
-                  })}
-                </div>
+              <div className="flex flex-wrap gap-1" role="radiogroup" aria-label="Material">
+                {materials.map((material) => {
+                  const disabled = isOptionDisabled('material', material);
+                  const active = selectedMaterial === material;
+                  return (
+                    <button
+                      key={material}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => {
+                        setSelectedMaterial(material);
+                        resolveAfterMaterial(material);
+                      }}
+                      className={`max-w-full truncate rounded border px-1.5 py-0.5 font-body text-[9px] font-semibold uppercase tracking-wide transition ${
+                        active
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : disabled
+                            ? 'cursor-not-allowed border-zinc-100 text-zinc-300 line-through'
+                            : 'border-zinc-200 text-zinc-600 hover:border-zinc-300'
+                      }`}
+                    >
+                      {material}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
         )}
 
-        <div className="mt-auto flex items-end justify-between gap-2 border-zinc-100 pt-3">
-          <p className="font-body text-lg font-semibold text-primary tabular-nums">
+        <div className="mt-auto flex shrink-0 items-end justify-between gap-2 border-t border-zinc-100/80 pt-3">
+          <p className="font-body text-base font-semibold text-zinc-900 tabular-nums sm:text-lg">
             {priceFmt(displayPrice)}
           </p>
           <button
             type="button"
             onClick={handleQuickBuy}
             disabled={!canQuickBuy}
-            className="shrink-0 rounded-lg bg-primary px-3 py-2 font-body text-[10px] font-semibold uppercase tracking-widest text-on-primary transition hover:bg-primary-container active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+            className="shrink-0 rounded-full bg-primary px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-wide text-on-primary transition hover:bg-primary-container active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
           >
             Quick Buy
           </button>

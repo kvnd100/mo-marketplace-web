@@ -11,6 +11,45 @@ const priceFmt = (n: number) =>
 
 type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'newest' | 'rating';
 
+/* ── Collapsible filter section ── */
+function FilterSection({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="border-b border-zinc-100 pb-4">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between py-2"
+      >
+        <h4 className="font-headline text-xs font-bold text-zinc-900">{title}</h4>
+        <Icon name={open ? 'expand_less' : 'expand_more'} className="text-base text-zinc-400" />
+      </button>
+      {open && <div className="pt-1">{children}</div>}
+    </div>
+  );
+}
+
+/* ── Star rating component ── */
+function StarRating({ rating, onClick, interactive = false }: { rating: number; onClick?: () => void; interactive?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-1 ${interactive ? 'cursor-pointer transition hover:opacity-80' : ''}`}
+    >
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Icon
+          key={i}
+          name="star"
+          filled={i < rating}
+          className={`text-sm ${i < rating ? 'text-amber-400' : 'text-zinc-200'}`}
+        />
+      ))}
+      <span className="ml-1 text-xs text-zinc-600">& Up</span>
+    </button>
+  );
+}
+
 export default function ProductList() {
   const { isAuthenticated } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
@@ -28,6 +67,7 @@ export default function ProductList() {
   const [stockFilter, setStockFilter] = useState<'all' | 'in-stock' | 'out-of-stock'>('all');
   const [sortBy, setSortBy] = useState<SortOption>('featured');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     client
@@ -160,43 +200,6 @@ export default function ProductList() {
     stockFilter !== 'all',
     priceMin > globalMinPrice || priceMax < globalMaxPrice,
   ].filter(Boolean).length;
-
-  /* ── Collapsible filter section ── */
-  const FilterSection = ({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) => {
-    const [open, setOpen] = useState(defaultOpen);
-    return (
-      <div className="border-b border-zinc-100 pb-4">
-        <button
-          type="button"
-          onClick={() => setOpen(!open)}
-          className="flex w-full items-center justify-between py-2"
-        >
-          <h4 className="font-headline text-xs font-bold text-zinc-900">{title}</h4>
-          <Icon name={open ? 'expand_less' : 'expand_more'} className="text-base text-zinc-400" />
-        </button>
-        {open && <div className="pt-1">{children}</div>}
-      </div>
-    );
-  };
-
-  /* ── Star rating component for filter ── */
-  const StarRating = ({ rating, onClick, interactive = false }: { rating: number; onClick?: () => void; interactive?: boolean }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex items-center gap-1 ${interactive ? 'cursor-pointer transition hover:opacity-80' : ''}`}
-    >
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Icon
-          key={i}
-          name="star"
-          filled={i < rating}
-          className={`text-sm ${i < rating ? 'text-amber-400' : 'text-zinc-200'}`}
-        />
-      ))}
-      <span className="ml-1 text-xs text-zinc-600">& Up</span>
-    </button>
-  );
 
   /* ── Filter sidebar content ── */
   const filterContent = (
@@ -380,7 +383,7 @@ export default function ProductList() {
     return (
       <div className="pt-16">
         <div className="flex">
-          <aside className="hidden w-60 shrink-0 border-r border-zinc-200 p-4 lg:block">
+          <aside className="hidden w-[280px] shrink-0 border-r border-zinc-200 p-5 xl:w-[320px] lg:block">
             <div className="space-y-6">
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i}>
@@ -394,26 +397,27 @@ export default function ProductList() {
               ))}
             </div>
           </aside>
-          <div className="flex-1 p-4">
+          <div className="min-w-0 flex-1 px-3 py-4 sm:px-4 lg:px-6">
             <div className="mb-6 flex items-end justify-between">
               <div className="h-8 w-32 animate-pulse rounded bg-zinc-200" />
               <div className="h-8 w-28 animate-pulse rounded-lg bg-zinc-200" />
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4">
-              {Array.from({ length: 8 }).map((_, i) => (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
+              {Array.from({ length: 10 }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex min-h-[28rem] animate-pulse flex-col overflow-hidden rounded-[1.35rem] border border-zinc-100 bg-white"
+                  className="flex animate-pulse flex-col overflow-hidden rounded-lg border border-zinc-100 bg-white"
                 >
-                  <div className="p-3 pb-0">
-                    <div className="aspect-square rounded-2xl bg-zinc-200" />
+                  <div className="px-3 pt-3">
+                    <div className="aspect-[3/4] w-full rounded-md bg-zinc-200" />
                   </div>
-                  <div className="flex flex-1 flex-col px-4 pb-4 pt-2">
-                    <div className="h-4 w-3/4 rounded bg-zinc-200" />
-                    <div className="mt-2 h-8 w-full rounded bg-zinc-100" />
-                    <div className="mt-auto flex justify-between pt-3">
-                      <div className="h-6 w-20 rounded bg-zinc-200" />
-                      <div className="h-8 w-20 rounded-lg bg-zinc-200" />
+                  <div className="flex flex-1 flex-col px-3 pb-3 pt-2.5">
+                    <div className="h-3.5 w-full rounded bg-zinc-200" />
+                    <div className="mt-2 h-3.5 w-4/5 rounded bg-zinc-100" />
+                    <div className="mt-2 h-3 w-2/3 rounded bg-zinc-100" />
+                    <div className="mt-auto flex justify-between gap-2 border-t border-zinc-100/80 pt-3">
+                      <div className="h-5 w-16 rounded bg-zinc-200" />
+                      <div className="h-8 w-20 rounded-full bg-zinc-200" />
                     </div>
                   </div>
                 </div>
@@ -513,27 +517,42 @@ export default function ProductList() {
       <div className="flex">
         {/* Desktop sidebar */}
         <aside
-          className="hidden w-60 shrink-0 overflow-y-auto border-r border-zinc-100 bg-white p-4 lg:block"
+          className={`hidden shrink-0 overflow-y-auto border-r border-zinc-100 bg-zinc-50/80 transition-all duration-300 lg:block ${
+            sidebarOpen ? 'w-[280px] p-5 xl:w-[320px]' : 'w-0 overflow-hidden p-0'
+          }`}
           style={{ height: 'calc(100vh - 4rem)', position: 'sticky', top: '4rem' }}
         >
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-headline text-sm font-bold text-on-surface">Filters</h3>
-            {hasActiveFilters && (
-              <button
-                onClick={clearAllFilters}
-                className="text-[10px] font-semibold text-primary transition hover:underline"
-              >
-                Clear all
-              </button>
-            )}
-          </div>
-          {filterContent}
+          {sidebarOpen && (
+            <>
+              <div className="mb-5 flex items-center justify-between border-b border-zinc-200/80 pb-4">
+                <h3 className="font-headline text-base font-bold tracking-tight text-on-surface">Filters</h3>
+                <div className="flex items-center gap-2">
+                  {hasActiveFilters && (
+                    <button
+                      onClick={clearAllFilters}
+                      className="text-[10px] font-semibold text-primary transition hover:underline"
+                    >
+                      Clear all
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setSidebarOpen(false)}
+                    className="rounded p-0.5 text-zinc-400 transition hover:bg-zinc-200 hover:text-zinc-600"
+                    title="Hide filters"
+                  >
+                    <Icon name="chevron_left" className="text-base" />
+                  </button>
+                </div>
+              </div>
+              {filterContent}
+            </>
+          )}
         </aside>
 
         {/* Main content */}
-        <div className="flex-1 p-4">
+        <div className="min-w-0 flex-1 px-3 py-4 sm:px-4 lg:px-6">
           {/* Results header */}
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3 sm:mb-4">
             <div>
               <div className="flex items-baseline gap-2">
                 <h1 className="font-headline text-xl font-bold tracking-tight text-on-surface">
@@ -575,6 +594,21 @@ export default function ProductList() {
             </div>
 
             <div className="hidden items-center gap-3 lg:flex">
+              {!sidebarOpen && (
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-600 transition hover:bg-zinc-50"
+                  title="Show filters"
+                >
+                  <Icon name="tune" className="text-sm" />
+                  Filters
+                  {activeFilterCount > 0 && (
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-on-primary">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+              )}
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
@@ -597,6 +631,46 @@ export default function ProductList() {
             </div>
           </div>
 
+          {/* Quick category filters*/}
+          {allCategories.length > 0 && (
+            <div className="mb-4 border-b border-zinc-100 pb-4">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                Category
+              </p>
+              <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-0.5 [scrollbar-width:thin]">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategories(new Set())}
+                  className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                    selectedCategories.size === 0
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300'
+                  }`}
+                >
+                  All
+                </button>
+                {allCategories.map((cat) => {
+                  const active = selectedCategories.has(cat);
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => toggleFilter(selectedCategories, setSelectedCategories, cat)}
+                      className={`max-w-[200px] shrink-0 truncate rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                        active
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300'
+                      }`}
+                      title={cat}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {filteredProducts.length === 0 ? (
             <div className="py-16 text-center">
               <Icon name="search_off" className="mx-auto text-5xl text-zinc-300" />
@@ -611,7 +685,7 @@ export default function ProductList() {
               </button>
             </div>
           ) : (
-            <div className="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
               {filteredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

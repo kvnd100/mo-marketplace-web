@@ -68,6 +68,17 @@ export default function ProductDetail() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  // Auto-select dimensions that only have one option
+  useEffect(() => {
+    if (!product) return;
+    const uniqueColors = [...new Set(product.variants.map((v) => v.color))];
+    const uniqueSizes = [...new Set(product.variants.map((v) => v.size))];
+    const uniqueMaterials = [...new Set(product.variants.map((v) => v.material))];
+    if (uniqueColors.length === 1) setSelectedColor(uniqueColors[0]);
+    if (uniqueSizes.length === 1) setSelectedSize(uniqueSizes[0]);
+    if (uniqueMaterials.length === 1) setSelectedMaterial(uniqueMaterials[0]);
+  }, [product]);
+
   // Reset quantity when variant changes
   useEffect(() => {
     setQuantity(1);
@@ -160,7 +171,7 @@ export default function ProductDetail() {
       addItem({
         productId: product.id,
         productName: product.name,
-        productImage: product.imageUrl,
+        productImage: selectedVariant.imageUrl || product.images?.[0] || product.imageUrl,
         variantId: selectedVariant.id,
         combinationKey: selectedVariant.combinationKey,
         color: selectedVariant.color,
@@ -216,14 +227,20 @@ export default function ProductDetail() {
         <div className="lg:col-span-5">
           <div className="sticky top-20">
             {(() => {
-              const allImages = product.images?.length ? product.images : product.imageUrl ? [product.imageUrl] : [];
-              const currentImage = allImages[selectedImageIndex] || null;
+              const productImages = product.images?.length ? product.images : product.imageUrl ? [product.imageUrl] : [];
+              const variantImages = [...new Set(
+                product.variants.map((v) => v.imageUrl).filter((url): url is string => !!url && !productImages.includes(url))
+              )];
+              const allImages = [...productImages, ...variantImages];
+              const variantImage = selectedVariant?.imageUrl || null;
+              const displayImage = variantImage || allImages[selectedImageIndex] || null;
+              const activeThumbIndex = variantImage ? allImages.indexOf(variantImage) : selectedImageIndex;
               return (
                 <>
                   <div className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white">
-                    {currentImage ? (
+                    {displayImage ? (
                       <img
-                        src={currentImage}
+                        src={displayImage}
                         alt={product.name}
                         className="aspect-square w-full object-contain p-6 transition-transform duration-500 group-hover:scale-110"
                       />
@@ -241,28 +258,31 @@ export default function ProductDetail() {
                     )}
                   </div>
                   {/* Thumbnail strip */}
-                  <div className="mt-3 grid grid-cols-5 gap-2">
-                    {allImages.length > 0 ? (
-                      allImages.map((img, i) => (
+                  {allImages.length > 0 && (
+                    <div className="mt-3 grid grid-cols-5 gap-2">
+                      {allImages.map((img, i) => (
                         <button
                           key={i}
                           type="button"
                           onClick={() => setSelectedImageIndex(i)}
                           className={`overflow-hidden rounded border-2 bg-white p-1 transition ${
-                            selectedImageIndex === i ? 'border-primary' : 'border-zinc-200 hover:border-zinc-300'
+                            activeThumbIndex === i ? 'border-primary' : 'border-zinc-200 hover:border-zinc-300'
                           }`}
                         >
                           <img src={img} alt="" className="aspect-square w-full object-contain" />
                         </button>
-                      ))
-                    ) : (
+                      ))}
+                    </div>
+                  )}
+                  {allImages.length === 0 && (
+                    <div className="mt-3 grid grid-cols-5 gap-2">
                       <div className="flex items-center justify-center overflow-hidden rounded border border-zinc-200 bg-zinc-50 p-1">
                         <div className="flex aspect-square w-full items-center justify-center text-zinc-300">
                           <Icon name="image" className="text-lg" />
                         </div>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </>
               );
             })()}

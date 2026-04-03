@@ -94,23 +94,26 @@ export default function VariantSelector({
           {colors.map((color) => {
             const disabled = isOptionDisabled('color', color);
             const active = selectedColor === color;
+            const onlyOption = colors.length === 1;
             const hex = getVariantColorHex(color);
 
             return (
               <button
                 key={color}
                 type="button"
-                disabled={disabled}
+                disabled={disabled || onlyOption}
                 onClick={() => onSelectColor(color)}
                 role="radio"
                 aria-checked={active}
                 aria-label={`${color}${disabled ? ' (out of stock)' : ''}`}
                 className={`relative h-10 w-10 overflow-hidden rounded-full border-2 transition-all ${
-                  active
-                    ? 'border-primary'
-                    : disabled
-                      ? 'cursor-not-allowed border-zinc-100 opacity-40'
-                      : 'border-transparent hover:border-zinc-300'
+                  onlyOption
+                    ? 'border-zinc-200'
+                    : active
+                      ? 'border-primary'
+                      : disabled
+                        ? 'cursor-not-allowed border-zinc-100 opacity-40'
+                        : 'border-transparent hover:border-zinc-300'
                 }`}
               >
                 <div
@@ -119,7 +122,7 @@ export default function VariantSelector({
                   } ${hex === '#ffffff' ? 'border border-zinc-100' : ''}`}
                   style={hex ? { backgroundColor: hex } : undefined}
                 />
-                {disabled && (
+                {disabled && !onlyOption && (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="h-[2px] w-8 rotate-45 rounded bg-zinc-400" />
                   </div>
@@ -142,22 +145,25 @@ export default function VariantSelector({
           {sizes.map((size) => {
             const disabled = isOptionDisabled('size', size);
             const active = selectedSize === size;
+            const onlyOption = sizes.length === 1;
 
             return (
               <button
                 key={size}
                 type="button"
-                disabled={disabled}
+                disabled={disabled || onlyOption}
                 onClick={() => onSelectSize(size)}
                 role="radio"
                 aria-checked={active}
                 aria-label={`${size}${disabled ? ' (out of stock)' : ''}`}
                 className={`rounded-lg border px-6 py-2 text-sm font-semibold transition-colors ${
-                  active
-                    ? 'border-2 border-primary bg-primary-container/10 font-black text-primary'
-                    : disabled
-                      ? 'cursor-not-allowed border-zinc-100 text-zinc-300 line-through'
-                      : 'border-zinc-200 text-zinc-700 hover:border-primary'
+                  onlyOption
+                    ? 'border-zinc-200 text-zinc-700'
+                    : active
+                      ? 'border-2 border-primary bg-primary-container/10 font-black text-primary'
+                      : disabled
+                        ? 'cursor-not-allowed border-zinc-100 text-zinc-300 line-through'
+                        : 'border-zinc-200 text-zinc-700 hover:border-primary'
                 }`}
               >
                 {size}
@@ -179,22 +185,25 @@ export default function VariantSelector({
           {materials.map((material) => {
             const disabled = isOptionDisabled('material', material);
             const active = selectedMaterial === material;
+            const onlyOption = materials.length === 1;
 
             return (
               <button
                 key={material}
                 type="button"
-                disabled={disabled}
+                disabled={disabled || onlyOption}
                 onClick={() => onSelectMaterial(material)}
                 role="radio"
                 aria-checked={active}
                 aria-label={`${material}${disabled ? ' (out of stock)' : ''}`}
                 className={`rounded px-5 py-2 text-sm font-semibold transition-colors ${
-                  active
-                    ? 'border border-primary bg-surface-container-high font-bold text-primary'
-                    : disabled
-                      ? 'cursor-not-allowed bg-zinc-50 text-zinc-300 line-through'
-                      : 'bg-surface-container-low text-zinc-600 hover:bg-surface-container-high'
+                  onlyOption
+                    ? 'bg-surface-container-low text-zinc-600'
+                    : active
+                      ? 'border border-primary bg-surface-container-high font-bold text-primary'
+                      : disabled
+                        ? 'cursor-not-allowed bg-zinc-50 text-zinc-300 line-through'
+                        : 'bg-surface-container-low text-zinc-600 hover:bg-surface-container-high'
                 }`}
               >
                 {material}
