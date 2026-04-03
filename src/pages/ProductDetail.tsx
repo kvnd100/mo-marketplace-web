@@ -31,7 +31,7 @@ export default function ProductDetail() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const { addItem } = useCart();
+  const { addItem, getCartQuantity } = useCart();
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -159,7 +159,7 @@ export default function ProductDetail() {
       : undefined;
 
   const hasVariants = product.variants.length > 0;
-  const allOutOfStock = hasVariants && product.variants.every((v) => v.stock === 0);
+  const allOutOfStock = hasVariants && product.variants.every((v) => v.stock - getCartQuantity(v.id, product.id) <= 0);
   const totalStock = product.variants.reduce((sum, v) => sum + v.stock, 0);
   const displayPrice = selectedVariant ? Number(selectedVariant.price) : Number(product.basePrice);
   const rating = product.rating ?? 4.5;
@@ -167,9 +167,12 @@ export default function ProductDetail() {
 
   // For products without variants, allow purchasing at base price
   const canBuyBase = !hasVariants;
-  const baseStock = product.stock ?? 0;
+  const baseStock = (product.stock ?? 0) - getCartQuantity(null, product.id);
+  const variantEffectiveStock = selectedVariant
+    ? selectedVariant.stock - getCartQuantity(selectedVariant.id, product.id)
+    : 0;
   const baseMaxQty = canBuyBase ? Math.min(baseStock, 30) : 0;
-  const maxQty = selectedVariant ? Math.min(selectedVariant.stock, 30) : baseMaxQty;
+  const maxQty = selectedVariant ? Math.min(variantEffectiveStock, 30) : baseMaxQty;
 
   const handleAddToCart = () => {
     if (canBuyBase) {
@@ -185,14 +188,14 @@ export default function ProductDetail() {
           size: null,
           material: null,
           price: Number(product.basePrice),
-          stock: baseStock,
+          stock: product.stock ?? 0,
         });
       }
       setAddedToCart(true);
       setTimeout(() => setAddedToCart(false), 2000);
       return;
     }
-    if (!selectedVariant || selectedVariant.stock === 0) return;
+    if (!selectedVariant || variantEffectiveStock <= 0) return;
     for (let i = 0; i < quantity; i++) {
       addItem({
         productId: product.id,
@@ -453,7 +456,7 @@ export default function ProductDetail() {
                 <p className="text-lg font-semibold text-red-600">Out of Stock</p>
               )
             ) : selectedVariant ? (
-              selectedVariant.stock > 0 ? (
+              variantEffectiveStock > 0 ? (
                 <p className="text-lg font-semibold text-green-700">In Stock</p>
               ) : (
                 <p className="text-lg font-semibold text-red-600">Out of Stock</p>
@@ -467,14 +470,14 @@ export default function ProductDetail() {
                 Only {baseStock} left in stock - order soon.
               </p>
             )}
-            {selectedVariant && selectedVariant.stock > 0 && selectedVariant.stock <= 5 && (
+            {selectedVariant && variantEffectiveStock > 0 && variantEffectiveStock <= 5 && (
               <p className="mt-1 text-xs font-medium text-primary">
-                Only {selectedVariant.stock} left in stock - order soon.
+                Only {variantEffectiveStock} left in stock - order soon.
               </p>
             )}
 
             {/* Quantity selector */}
-            {((canBuyBase && baseStock > 0) || (selectedVariant && selectedVariant.stock > 0)) && (
+            {((canBuyBase && baseStock > 0) || (selectedVariant && variantEffectiveStock > 0)) && (
               <div className="mt-4">
                 <label className="mb-1.5 block text-xs font-medium text-zinc-600">Quantity:</label>
                 <select
@@ -494,7 +497,7 @@ export default function ProductDetail() {
             {/* Add to Cart button */}
             <button
               onClick={handleAddToCart}
-              disabled={(canBuyBase && baseStock <= 0) || (!canBuyBase && (!selectedVariant || selectedVariant.stock === 0))}
+              disabled={(canBuyBase && baseStock <= 0) || (!canBuyBase && (!selectedVariant || variantEffectiveStock <= 0))}
               className="mt-4 w-full rounded-full bg-amber-400 py-2.5 text-sm font-bold text-zinc-900 transition hover:bg-amber-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {addedToCart
@@ -503,15 +506,15 @@ export default function ProductDetail() {
                   ? baseStock <= 0 ? 'Out of Stock' : 'Add to Cart'
                   : !selectedVariant
                     ? 'Select Options'
-                    : selectedVariant.stock === 0
+                    : variantEffectiveStock <= 0
                       ? 'Out of Stock'
                       : 'Add to Cart'}
             </button>
 
             {/* Buy Now / Quick Buy */}
             <button
-              onClick={() => ((canBuyBase && baseStock > 0) || selectedVariant) && setQuickBuyOpen(true)}
-              disabled={(canBuyBase && baseStock <= 0) || (!canBuyBase && (!selectedVariant || selectedVariant.stock === 0))}
+              onClick={() => ((canBuyBase && baseStock > 0) || (selectedVariant && variantEffectiveStock > 0)) && setQuickBuyOpen(true)}
+              disabled={(canBuyBase && baseStock <= 0) || (!canBuyBase && (!selectedVariant || variantEffectiveStock <= 0))}
               className="mt-2 w-full rounded-full bg-primary py-2.5 text-sm font-bold text-on-primary transition hover:bg-primary-container active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
             >
               Buy Now

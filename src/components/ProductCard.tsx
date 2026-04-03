@@ -5,6 +5,7 @@ import ProductImage from './ProductImage';
 import Icon from './Icon';
 import QuickBuy from './QuickBuy';
 import { getVariantColorHex } from '../utils/variantColors';
+import { useCart } from '../store/cart-context';
 
 const priceFmt = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
@@ -15,6 +16,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const variants = product.variants;
+  const { getCartQuantity } = useCart();
   const [quickBuyOpen, setQuickBuyOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -42,11 +44,14 @@ export default function ProductCard({ product }: ProductCardProps) {
       (v) => v.color === color && v.size === size && v.material === material,
     );
 
-  /** Disabled only when every variant with this option value is out of stock. */
+  const effectiveVariantStock = (v: Variant) =>
+    v.stock - getCartQuantity(v.id, product.id);
+
+  /** Disabled only when every variant with this option value is out of effective stock. */
   const isOptionDisabled = (
     dimension: 'color' | 'size' | 'material',
     value: string,
-  ): boolean => !variants.some((v) => v[dimension] === value && v.stock > 0);
+  ): boolean => !variants.some((v) => v[dimension] === value && effectiveVariantStock(v) > 0);
 
   useEffect(() => {
     const first = variants.find((v) => v.stock > 0);
@@ -106,20 +111,22 @@ export default function ProductCard({ product }: ProductCardProps) {
       : undefined;
 
   const allOutOfStock =
-    variants.length > 0 && variants.every((v) => v.stock === 0);
+    variants.length > 0 && variants.every((v) => effectiveVariantStock(v) <= 0);
 
   const displayPrice = selectedVariant
     ? Number(selectedVariant.price)
     : Number(product.basePrice);
 
   const canBuyBase = variants.length === 0;
+  const baseEffectiveStock = canBuyBase ? (product.stock ?? 0) - getCartQuantity(null, product.id) : 0;
+  const selectedEffectiveStock = selectedVariant ? effectiveVariantStock(selectedVariant) : 0;
   const canQuickBuy =
-    canBuyBase || (selectedVariant && selectedVariant.stock > 0);
+    (canBuyBase && baseEffectiveStock > 0) || (selectedVariant && selectedEffectiveStock > 0);
 
   const handleQuickBuy = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!canBuyBase && (!selectedVariant || selectedVariant.stock <= 0)) return;
+    if (!canQuickBuy) return;
     setQuickBuyOpen(true);
   };
 

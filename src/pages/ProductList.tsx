@@ -66,7 +66,7 @@ export default function ProductList() {
   const [selectedConditions, setSelectedConditions] = useState<Set<string>>(new Set());
   const [minRating, setMinRating] = useState<number>(0);
   const [priceMin, setPriceMin] = useState<number>(0);
-  const [priceMax, setPriceMax] = useState<number>(Infinity);
+  const [priceMax, setPriceMax] = useState<number>(10000);
   const [stockFilter, setStockFilter] = useState<'all' | 'in-stock' | 'out-of-stock'>('all');
   const [sortBy, setSortBy] = useState<SortOption>('featured');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -108,29 +108,15 @@ export default function ProductList() {
     () => [...new Set(products.map((p) => p.brand || 'Unbranded'))].sort(),
     [products],
   );
-  const globalMaxPrice = useMemo(
-    () => Math.ceil(Math.max(...products.map((p) => Number(p.basePrice)), 0) / 10) * 10 || 1000,
-    [products],
-  );
-  const globalMinPrice = useMemo(
-    () => Math.floor(Math.min(...products.map((p) => Number(p.basePrice)), Infinity) / 10) * 10 || 0,
-    [products],
-  );
-
-  // Initialize price range when products load
-  useEffect(() => {
-    if (products.length > 0 && priceMax === Infinity) {
-      setPriceMax(globalMaxPrice);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products.length, globalMaxPrice]);
+  // Fixed price range
+  const PRICE_RANGE_MIN = 0;
+  const PRICE_RANGE_MAX = 10000;
 
   // Filtered + sorted products
   const filteredProducts = useMemo(() => {
     let result = products.filter((product) => {
       const price = Number(product.basePrice);
-      const effectiveMax = priceMax === Infinity ? globalMaxPrice : priceMax;
-      if (price < priceMin || price > effectiveMax) return false;
+      if (price < priceMin || price > priceMax) return false;
 
       const allOut = product.variants.length > 0 && product.variants.every((v) => v.stock === 0);
       if (stockFilter === 'in-stock' && allOut) return false;
@@ -176,7 +162,7 @@ export default function ProductList() {
     }
 
     return result;
-  }, [products, priceMin, priceMax, globalMaxPrice, selectedCategories, selectedBrands, selectedConditions, minRating, stockFilter, sortBy]);
+  }, [products, priceMin, priceMax, PRICE_RANGE_MAX, selectedCategories, selectedBrands, selectedConditions, minRating, stockFilter, sortBy]);
 
   const toggleFilter = useCallback(
     (set: Set<string>, setter: React.Dispatch<React.SetStateAction<Set<string>>>, value: string) => {
@@ -193,8 +179,8 @@ export default function ProductList() {
     setSelectedBrands(new Set());
     setSelectedConditions(new Set());
     setMinRating(0);
-    setPriceMin(globalMinPrice);
-    setPriceMax(globalMaxPrice);
+    setPriceMin(PRICE_RANGE_MIN);
+    setPriceMax(PRICE_RANGE_MAX);
     setStockFilter('all');
   };
 
@@ -204,8 +190,8 @@ export default function ProductList() {
     selectedConditions.size > 0 ||
     minRating > 0 ||
     stockFilter !== 'all' ||
-    priceMin > globalMinPrice ||
-    priceMax < globalMaxPrice;
+    priceMin > PRICE_RANGE_MIN ||
+    priceMax < PRICE_RANGE_MAX;
 
   const activeFilterCount = [
     selectedCategories.size > 0,
@@ -213,7 +199,7 @@ export default function ProductList() {
     selectedConditions.size > 0,
     minRating > 0,
     stockFilter !== 'all',
-    priceMin > globalMinPrice || priceMax < globalMaxPrice,
+    priceMin > PRICE_RANGE_MIN || priceMax < PRICE_RANGE_MAX,
   ].filter(Boolean).length;
 
   /* ── Filter sidebar content ── */
@@ -262,20 +248,20 @@ export default function ProductList() {
         <div className="px-1 pt-2">
           <div className="mb-3 flex items-center justify-between text-xs text-zinc-600">
             <span>{priceFmt(priceMin)}</span>
-            <span>{priceFmt(priceMax === Infinity ? globalMaxPrice : priceMax)}</span>
+            <span>{priceFmt(priceMax)}</span>
           </div>
           <div className="space-y-3">
             <div>
               <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Min</label>
               <input
                 type="range"
-                min={globalMinPrice}
-                max={globalMaxPrice}
+                min={PRICE_RANGE_MIN}
+                max={PRICE_RANGE_MAX}
                 step={1}
                 value={priceMin}
                 onChange={(e) => {
                   const val = Number(e.target.value);
-                  setPriceMin(Math.min(val, (priceMax === Infinity ? globalMaxPrice : priceMax) - 1));
+                  setPriceMin(Math.min(val, priceMax - 1));
                 }}
                 className="w-full accent-primary"
               />
@@ -284,10 +270,10 @@ export default function ProductList() {
               <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Max</label>
               <input
                 type="range"
-                min={globalMinPrice}
-                max={globalMaxPrice}
+                min={PRICE_RANGE_MIN}
+                max={PRICE_RANGE_MAX}
                 step={1}
-                value={priceMax === Infinity ? globalMaxPrice : priceMax}
+                value={priceMax}
                 onChange={(e) => {
                   const val = Number(e.target.value);
                   setPriceMax(Math.max(val, priceMin + 1));
@@ -302,7 +288,7 @@ export default function ProductList() {
               { label: 'Under $25', min: 0, max: 25 },
               { label: '$25-$50', min: 25, max: 50 },
               { label: '$50-$100', min: 50, max: 100 },
-              { label: '$100+', min: 100, max: globalMaxPrice },
+              { label: '$100+', min: 100, max: PRICE_RANGE_MAX },
             ].map(({ label, min, max }) => (
               <button
                 key={label}
