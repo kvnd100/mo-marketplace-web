@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Product, Variant } from '../types';
 import Icon from './Icon';
+import { useCart } from '../store/cart-context';
 
 interface QuickBuyProps {
   product: Product;
@@ -12,6 +13,7 @@ interface QuickBuyProps {
 export default function QuickBuy({ product, variant, open, onClose }: QuickBuyProps) {
   const [confirmed, setConfirmed] = useState(false);
   const [visible, setVisible] = useState(false);
+  const { addItem } = useCart();
 
   useEffect(() => {
     if (open) {
@@ -28,6 +30,18 @@ export default function QuickBuy({ product, variant, open, onClose }: QuickBuyPr
   };
 
   const handleConfirm = () => {
+    addItem({
+      productId: product.id,
+      productName: product.name,
+      productImage: product.imageUrl,
+      variantId: variant.id,
+      combinationKey: variant.combinationKey,
+      color: variant.color,
+      size: variant.size,
+      material: variant.material,
+      price: Number(variant.price),
+      stock: variant.stock,
+    });
     setConfirmed(true);
   };
 

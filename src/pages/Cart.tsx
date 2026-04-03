@@ -29,7 +29,7 @@ export default function Cart() {
   }
 
   return (
-    <div className="px-4 pt-20 pb-10">
+    <div className="mx-auto max-w-7xl pt-20 pb-10 sm:px-6 lg:px-8">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="font-headline text-xl font-bold text-on-surface">
           Shopping Cart ({totalItems} item{totalItems !== 1 ? 's' : ''})

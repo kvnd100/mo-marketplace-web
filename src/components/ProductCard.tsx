@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Product, Variant } from '../types';
-import { useCart } from '../store/cart-context';
 import ProductImage from './ProductImage';
 import Icon from './Icon';
+import QuickBuy from './QuickBuy';
 import { getVariantColorHex } from '../utils/variantColors';
 
 const priceFmt = (n: number) =>
@@ -14,8 +14,8 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const { addItem } = useCart();
   const variants = product.variants;
+  const [quickBuyOpen, setQuickBuyOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
@@ -119,18 +119,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     e.preventDefault();
     e.stopPropagation();
     if (!selectedVariant || selectedVariant.stock <= 0) return;
-    addItem({
-      productId: product.id,
-      productName: product.name,
-      productImage: product.imageUrl,
-      variantId: selectedVariant.id,
-      combinationKey: selectedVariant.combinationKey,
-      color: selectedVariant.color,
-      size: selectedVariant.size,
-      material: selectedVariant.material,
-      price: Number(selectedVariant.price),
-      stock: selectedVariant.stock,
-    });
+    setQuickBuyOpen(true);
   };
 
   return (
@@ -141,7 +130,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           className="relative block aspect-square overflow-hidden rounded-2xl bg-white"
         >
           <ProductImage
-            src={product.imageUrl}
+            src={product.images?.[0] || product.imageUrl}
             alt={product.name}
             className="h-full w-full object-contain p-2"
           />
@@ -306,6 +295,15 @@ export default function ProductCard({ product }: ProductCardProps) {
           </button>
         </div>
       </div>
+
+      {selectedVariant && (
+        <QuickBuy
+          product={product}
+          variant={selectedVariant}
+          open={quickBuyOpen}
+          onClose={() => setQuickBuyOpen(false)}
+        />
+      )}
     </article>
   );
 }

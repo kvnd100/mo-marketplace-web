@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import ProductList from './pages/ProductList';
 import ProductDetail from './pages/ProductDetail';
 import ProductCreate from './pages/ProductCreate';
+import ProductEdit from './pages/ProductEdit';
 import Cart from './pages/Cart';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
           <Route path="/cart" element={<Cart />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/products/new" element={<ProductCreate />} />
+            <Route path="/products/:id/edit" element={<ProductEdit />} />
           </Route>
           <Route path="*" element={<Navigate to="/products" replace />} />
         </Routes>

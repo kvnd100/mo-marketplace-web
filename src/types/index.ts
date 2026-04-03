@@ -4,6 +4,11 @@ export interface User {
   createdAt: string;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+}
+
 export interface Variant {
   id: string;
   productId: string;
@@ -14,6 +19,7 @@ export interface Variant {
   price: number;
   stock: number;
   sku: string | null;
+  imageUrl: string | null;
   createdAt: string;
 }
 
@@ -23,6 +29,12 @@ export interface Product {
   description: string;
   basePrice: number;
   imageUrl: string | null;
+  images: string[];
+  category?: string;
+  brand?: string;
+  condition?: 'new' | 'used' | 'refurbished';
+  rating?: number;
+  reviewCount?: number;
   createdAt: string;
   updatedAt: string;
   variants: Variant[];
