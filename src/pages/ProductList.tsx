@@ -9,7 +9,7 @@ import ProductCard from '../components/ProductCard';
 const priceFmt = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
 
-type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'newest' | 'rating';
+type SortOption = 'featured' | 'price_asc' | 'price_desc' | 'newest' | 'rating_desc' | 'oldest';
 
 /* ── Collapsible filter section ── */
 function FilterSection({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
@@ -483,10 +483,11 @@ export default function ProductList() {
             className="rounded border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-700 focus:border-primary focus:outline-none"
           >
             <option value="featured">Featured</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
+            <option value="price_asc">Price: Low to High</option>
+            <option value="price_desc">Price: High to Low</option>
             <option value="newest">Newest</option>
-            <option value="rating">Avg. Rating</option>
+            <option value="oldest">Oldest</option>
+            <option value="rating_desc">Avg. Rating</option>
           </select>
         </div>
       </div>
@@ -599,10 +600,11 @@ export default function ProductList() {
                 className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-700 focus:border-primary focus:outline-none"
               >
                 <option value="featured">Sort by: Featured</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
                 <option value="newest">Newest Arrivals</option>
-                <option value="rating">Avg. Customer Rating</option>
+                <option value="oldest">Oldest</option>
+                <option value="rating_desc">Avg. Customer Rating</option>
               </select>
               {isAuthenticated && (
                 <Link
