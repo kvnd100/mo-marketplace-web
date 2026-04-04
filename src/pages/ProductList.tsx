@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import client from '../api/client';
 import type { Product, Category, PaginatedResponse, PaginationMeta } from '../types';
@@ -54,6 +54,7 @@ export default function ProductList() {
   const { isAuthenticated } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filtering, setFiltering] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [apiCategories, setApiCategories] = useState<Category[]>([]);
   const [page, setPage] = useState(1);
@@ -72,18 +73,49 @@ export default function ProductList() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const fetchProducts = useCallback((p: number) => {
-    setLoading(true);
-    setError(null);
-    client
-      .get<PaginatedResponse<Product>>('/products', { params: { page: p, limit: ITEMS_PER_PAGE } })
-      .then((res) => {
-        setProducts(res.data.data);
-        setMeta(res.data.meta);
-      })
-      .catch(() => setError('Failed to load products. Please try again later.'))
-      .finally(() => setLoading(false));
-  }, []);
+  const initialLoadDone = useRef(false);
+
+  const fetchProducts = useCallback(
+    (p: number) => {
+      if (initialLoadDone.current) {
+        setFiltering(true);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+
+      const params = new URLSearchParams();
+      params.append('page', String(p));
+      params.append('limit', String(ITEMS_PER_PAGE));
+
+      for (const cat of selectedCategories) params.append('category', cat);
+      for (const brand of selectedBrands) params.append('brand', brand);
+      for (const cond of selectedConditions) params.append('condition', cond);
+      if (minRating > 0) params.append('minRating', String(minRating));
+      if (priceMin > 0) params.append('minPrice', String(priceMin));
+      if (priceMax < 10000) params.append('maxPrice', String(priceMax));
+      if (stockFilter !== 'all') params.append('stock', stockFilter);
+      if (sortBy !== 'featured') params.append('sort', sortBy);
+
+      client
+        .get<PaginatedResponse<Product>>('/products', { params })
+        .then((res) => {
+          setProducts(res.data.data);
+          setMeta(res.data.meta);
+        })
+        .catch(() => setError('Failed to load products. Please try again later.'))
+        .finally(() => {
+          setLoading(false);
+          setFiltering(false);
+          initialLoadDone.current = true;
+        });
+    },
+    [selectedCategories, selectedBrands, selectedConditions, minRating, priceMin, priceMax, stockFilter, sortBy],
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [selectedCategories, selectedBrands, selectedConditions, minRating, priceMin, priceMax, stockFilter, sortBy]);
 
   useEffect(() => {
     fetchProducts(page);
@@ -112,57 +144,7 @@ export default function ProductList() {
   const PRICE_RANGE_MIN = 0;
   const PRICE_RANGE_MAX = 10000;
 
-  // Filtered + sorted products
-  const filteredProducts = useMemo(() => {
-    let result = products.filter((product) => {
-      const price = Number(product.basePrice);
-      if (price < priceMin || price > priceMax) return false;
-
-      const allOut = product.variants.length > 0 && product.variants.every((v) => v.stock === 0);
-      if (stockFilter === 'in-stock' && allOut) return false;
-      if (stockFilter === 'out-of-stock' && !allOut) return false;
-
-      if (selectedCategories.size > 0) {
-        const cat = product.category || 'Uncategorized';
-        if (!selectedCategories.has(cat)) return false;
-      }
-
-      if (selectedBrands.size > 0) {
-        const brand = product.brand || 'Unbranded';
-        if (!selectedBrands.has(brand)) return false;
-      }
-
-      if (selectedConditions.size > 0) {
-        const cond = product.condition || 'new';
-        if (!selectedConditions.has(cond)) return false;
-      }
-
-      if (minRating > 0) {
-        const rating = product.rating ?? 0;
-        if (rating < minRating) return false;
-      }
-
-      return true;
-    });
-
-    // Sort
-    switch (sortBy) {
-      case 'price-asc':
-        result = [...result].sort((a, b) => Number(a.basePrice) - Number(b.basePrice));
-        break;
-      case 'price-desc':
-        result = [...result].sort((a, b) => Number(b.basePrice) - Number(a.basePrice));
-        break;
-      case 'newest':
-        result = [...result].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        break;
-      case 'rating':
-        result = [...result].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
-        break;
-    }
-
-    return result;
-  }, [products, priceMin, priceMax, PRICE_RANGE_MAX, selectedCategories, selectedBrands, selectedConditions, minRating, stockFilter, sortBy]);
+  const filteredProducts = products;
 
   const toggleFilter = useCallback(
     (set: Set<string>, setter: React.Dispatch<React.SetStateAction<Set<string>>>, value: string) => {
@@ -449,7 +431,7 @@ export default function ProductList() {
   }
 
   /* ── Empty ──────────────────────────────────────────── */
-  if (products.length === 0) {
+  if (products.length === 0 && !hasActiveFilters) {
     return (
       <div className="px-4 pt-20 pb-20 text-center">
         <div className="py-20">
@@ -560,7 +542,7 @@ export default function ProductList() {
                   Results
                 </h1>
                 <span className="text-sm text-zinc-500">
-                  {filteredProducts.length} of {meta?.total ?? products.length}
+                  {meta?.total ?? filteredProducts.length} product{(meta?.total ?? filteredProducts.length) !== 1 ? 's' : ''}
                 </span>
               </div>
               {/* Active filter chips */}
@@ -672,26 +654,28 @@ export default function ProductList() {
             </div>
           )}
 
-          {filteredProducts.length === 0 ? (
-            <div className="py-16 text-center">
-              <Icon name="search_off" className="mx-auto text-5xl text-zinc-300" />
-              <p className="mt-3 text-sm text-zinc-500">
-                No products match your filters.
-              </p>
-              <button
-                onClick={clearAllFilters}
-                className="mt-3 text-xs font-semibold text-primary transition hover:underline"
-              >
-                Clear Filters
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
+          <div className={`transition-opacity duration-200 ${filtering ? 'pointer-events-none opacity-50' : ''}`}>
+            {filteredProducts.length === 0 ? (
+              <div className="py-16 text-center">
+                <Icon name="search_off" className="mx-auto text-5xl text-zinc-300" />
+                <p className="mt-3 text-sm text-zinc-500">
+                  No products match your filters.
+                </p>
+                <button
+                  onClick={clearAllFilters}
+                  className="mt-3 text-xs font-semibold text-primary transition hover:underline"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Pagination */}
           {meta && meta.totalPages > 1 && (
