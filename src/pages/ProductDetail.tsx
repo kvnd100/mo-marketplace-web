@@ -162,7 +162,7 @@ export default function ProductDetail() {
   const allOutOfStock = hasVariants && product.variants.every((v) => v.stock - getCartQuantity(v.id, product.id) <= 0);
   const totalStock = product.variants.reduce((sum, v) => sum + v.stock, 0);
   const displayPrice = selectedVariant ? Number(selectedVariant.price) : Number(product.basePrice);
-  const rating = product.rating ?? 4.5;
+  const rating = Number(product.rating ?? 4.5);
   const reviewCount = product.reviewCount ?? 0;
 
   // For products without variants, allow purchasing at base price

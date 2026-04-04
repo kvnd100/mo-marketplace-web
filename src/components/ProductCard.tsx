@@ -133,7 +133,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   const ratingDisplay =
-    product.rating != null && product.rating > 0 ? product.rating.toFixed(1) : null;
+    product.rating != null && Number(product.rating) > 0 ? Number(product.rating).toFixed(1) : null;
 
   const displayImage = selectedVariant?.imageUrl || product.images?.[0] || product.imageUrl;
 
