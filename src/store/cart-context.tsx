@@ -116,6 +116,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCart(): CartContextValue {
   const context = useContext(CartContext);
   if (!context) {

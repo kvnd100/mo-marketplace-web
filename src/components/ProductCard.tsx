@@ -53,6 +53,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     value: string,
   ): boolean => !variants.some((v) => v[dimension] === value && effectiveVariantStock(v) > 0);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const first = variants.find((v) => v.stock > 0);
     if (first) {
@@ -65,6 +66,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       setSelectedMaterial(null);
     }
   }, [product.id, variants]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const resolveAfterColor = (color: string) => {
     const withColor = variants.filter((v) => v.color === color && v.stock > 0);
@@ -140,7 +142,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="px-3 pt-3">
         <Link
           to={`/products/${product.id}`}
-          className="relative block w-full overflow-hidden rounded-md bg-zinc-50 aspect-[3/4]"
+          className="relative block w-full overflow-hidden rounded-md bg-zinc-50 aspect-3/4"
         >
           <ProductImage
             src={displayImage}

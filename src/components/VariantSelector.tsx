@@ -124,7 +124,7 @@ export default function VariantSelector({
                 />
                 {disabled && !onlyOption && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="h-[2px] w-8 rotate-45 rounded bg-zinc-400" />
+                    <div className="h-0.5 w-8 rotate-45 rounded bg-zinc-400" />
                   </div>
                 )}
               </button>

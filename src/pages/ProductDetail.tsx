@@ -227,7 +227,7 @@ export default function ProductDetail() {
               <Icon name="chevron_right" className="text-xs text-zinc-300" />
             </>
           )}
-          <span className="text-zinc-400 truncate max-w-[200px]">{product.name}</span>
+          <span className="text-zinc-400 truncate max-w-50">{product.name}</span>
         </nav>
         {isAuthenticated && (
           <div className="flex items-center gap-2">

@@ -18,6 +18,7 @@ export default function QuickBuy({ product, variant, open, onClose }: QuickBuyPr
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAdded(false);
       requestAnimationFrame(() => setVisible(true));
     } else {

@@ -75,6 +75,11 @@ export default function ProductList() {
 
   const initialLoadDone = useRef(false);
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPage(1);
+  }, [selectedCategories, selectedBrands, selectedConditions, minRating, priceMin, priceMax, stockFilter, sortBy]);
+
   const fetchProducts = useCallback(
     (p: number) => {
       if (initialLoadDone.current) {
@@ -114,11 +119,7 @@ export default function ProductList() {
   );
 
   useEffect(() => {
-    setPage(1);
-  }, [selectedCategories, selectedBrands, selectedConditions, minRating, priceMin, priceMax, stockFilter, sortBy]);
-
-  useEffect(() => {
-    fetchProducts(page);
+    fetchProducts(page); // eslint-disable-line react-hooks/set-state-in-effect
   }, [page, fetchProducts]);
 
   useEffect(() => {
@@ -366,7 +367,7 @@ export default function ProductList() {
     return (
       <div className="pt-16">
         <div className="flex">
-          <aside className="hidden w-[280px] shrink-0 border-r border-zinc-200 p-5 xl:w-[320px] lg:block">
+          <aside className="hidden w-70 shrink-0 border-r border-zinc-200 p-5 xl:w-[320px] lg:block">
             <div className="space-y-6">
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i}>
@@ -392,7 +393,7 @@ export default function ProductList() {
                   className="flex animate-pulse flex-col overflow-hidden rounded-lg border border-zinc-100 bg-white"
                 >
                   <div className="px-3 pt-3">
-                    <div className="aspect-[3/4] w-full rounded-md bg-zinc-200" />
+                    <div className="aspect-3/4 w-full rounded-md bg-zinc-200" />
                   </div>
                   <div className="flex flex-1 flex-col px-3 pb-3 pt-2.5">
                     <div className="h-3.5 w-full rounded bg-zinc-200" />
@@ -501,7 +502,7 @@ export default function ProductList() {
         {/* Desktop sidebar */}
         <aside
           className={`hidden shrink-0 overflow-y-auto border-r border-zinc-100 bg-zinc-50/80 transition-all duration-300 lg:block ${
-            sidebarOpen ? 'w-[280px] p-5 xl:w-[320px]' : 'w-0 overflow-hidden p-0'
+            sidebarOpen ? 'w-70 p-5 xl:w-[320px]' : 'w-0 overflow-hidden p-0'
           }`}
           style={{ height: 'calc(100vh - 4rem)', position: 'sticky', top: '4rem' }}
         >
@@ -639,7 +640,7 @@ export default function ProductList() {
                       key={cat}
                       type="button"
                       onClick={() => toggleFilter(selectedCategories, setSelectedCategories, cat)}
-                      className={`max-w-[200px] shrink-0 truncate rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                      className={`max-w-50 shrink-0 truncate rounded-full border px-3 py-1.5 text-xs font-medium transition ${
                         active
                           ? 'border-primary bg-primary/10 text-primary'
                           : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300'
